@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import { useBook, useCreateBook, useUpdateBook } from '../../hooks/useBooks'
 import { isbnService } from '../../services/isbnService'
@@ -12,7 +12,6 @@ interface BookFormProps {
 const readingStatuses: ReadingStatus[] = ['wantToRead', 'currentlyReading', 'read']
 
 export function BookForm({ mode }: BookFormProps) {
-  // Use a route pattern that matches both /books/new and /books/$bookId/edit
   const search = useSearch({ from: mode === 'edit' ? '/books/$bookId/edit' : '/books/new' }) as { isbn?: string }
   const params = useParams({ from: mode === 'edit' ? '/books/$bookId/edit' : '/books/new' }) as { bookId?: string }
   const navigate = useNavigate()
@@ -20,6 +19,7 @@ export function BookForm({ mode }: BookFormProps) {
   const { data: existingBook } = useBook(mode === 'edit' && bookId ? bookId : '')
   const createBook = useCreateBook()
   const updateBook = useUpdateBook()
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [formData, setFormData] = useState<BookFormData>({
     title: '',
@@ -45,19 +45,31 @@ export function BookForm({ mode }: BookFormProps) {
   const [croppedCover, setCroppedCover] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
   const [isLookingUpISBN, setIsLookingUpISBN] = useState(false)
   const [isbnLookupError, setIsbnLookupError] = useState<string | null>(null)
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
 
-  // Handle ISBN from scanner
   useEffect(() => {
-    if (mode === 'create' && typeof search.isbn === 'string' && search.isbn && !formData.title) {
+    if (croppedCover) {
+      const url = URL.createObjectURL(croppedCover.thumbnail)
+      setCoverUrl(url)
+      return () => URL.revokeObjectURL(url)
+    }
+    return undefined
+  }, [croppedCover])
+
+  const [isbnProcessed, setIsbnProcessed] = useState(false)
+  useEffect(() => {
+    if (mode === 'create' && typeof search.isbn === 'string' && search.isbn && !isbnProcessed) {
       const isbn = search.isbn
+      setIsbnProcessed(true)
       setFormData(prev => ({ ...prev, isbn }))
       performISBNLookup(isbn)
     }
-  }, [mode, search.isbn, formData.title])
+  }, [mode, search.isbn, isbnProcessed])
 
-  // Populate form with existing book data
+  const [formInitialized, setFormInitialized] = useState(false)
   useEffect(() => {
-    if (mode === 'edit' && existingBook && !formData.title) {
+    if (mode === 'edit' && existingBook && !formInitialized) {
+      setFormInitialized(true)
       setFormData({
         title: existingBook.title,
         author: existingBook.author,
@@ -85,7 +97,7 @@ export function BookForm({ mode }: BookFormProps) {
         })
       }
     }
-  }, [mode, existingBook])
+  }, [mode, existingBook, formInitialized])
 
   const updateField = <K extends keyof BookFormData>(field: K, value: BookFormData[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -131,6 +143,10 @@ export function BookForm({ mode }: BookFormProps) {
     setCroppedCover({ image: processed.fullImage, thumbnail: processed.thumbnail })
   }
 
+  const handleCoverClick = () => {
+    fileInputRef.current?.click()
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -158,228 +174,278 @@ export function BookForm({ mode }: BookFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="book-form">
-      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>
+    <form onSubmit={handleSubmit} className="book-form" style={{ maxWidth: 800, margin: '0 auto', padding: 16 }}>
+      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>
         {mode === 'edit' ? 'Edit Book' : 'Add New Book'}
       </h1>
 
       {isbnLookupError && (
-        <div style={{ padding: 12, backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ color: '#dc2626', margin: 0, fontSize: 14 }}>{isbnLookupError}</p>
+        <div className="form__error">
+          <p className="form__error-text">{isbnLookupError}</p>
         </div>
       )}
 
-      {/* Cover Image */}
-      <div className="form-group">
-        <label className="form-label">Cover Image</label>
-        <div style={{ display: 'flex', gap: 16, alignItems: 'flex-start' }}>
-          {croppedCover ? (
+      {/* Cover & Identity Section */}
+      <div className="form__section">
+        <div className="form__section-header">
+          <svg className="form__section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+          </svg>
+          <h2 className="form__section-title">Book Information</h2>
+        </div>
+
+        <div className="form__cover-section">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileSelect}
+            style={{ display: 'none' }}
+          />
+          {coverUrl ? (
             <img
-              src={URL.createObjectURL(croppedCover.thumbnail)}
+              src={coverUrl}
               alt="Cover"
-              style={{ width: 100, height: 150, objectFit: 'cover', borderRadius: 8 }}
+              className="form__cover-preview"
+              onClick={handleCoverClick}
+              style={{ cursor: 'pointer' }}
             />
           ) : (
-            <div style={{ width: 100, height: 150, backgroundColor: 'var(--app-surface)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" style={{ color: 'var(--app-border)' }}>
+            <div className="form__cover-upload" onClick={handleCoverClick}>
+              <svg className="form__cover-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
+              <span className="form__cover-upload-text">Click to upload cover</span>
             </div>
           )}
-          <div>
-            <input type="file" accept="image/*" onChange={handleFileSelect} style={{ marginBottom: 8 }} />
-            <p style={{ fontSize: 12, color: 'var(--app-text)', opacity: 0.6 }}>Upload a cover image</p>
+          <div className="form__cover-actions" style={{ flex: 1 }}>
+            {mode === 'create' && (
+              <div className="form__group">
+                <label className="form__label">ISBN Lookup</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={formData.isbn}
+                    onChange={(e) => updateField('isbn', e.target.value)}
+                    placeholder="Enter ISBN"
+                    className="form-input"
+                    style={{ flex: 1 }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    onClick={() => formData.isbn && performISBNLookup(formData.isbn)}
+                    disabled={isLookingUpISBN || !formData.isbn}
+                  >
+                    {isLookingUpISBN ? 'Looking...' : 'Lookup'}
+                  </button>
+                </div>
+                <p className="form__hint">Enter ISBN to auto-fill book details</p>
+              </div>
+            )}
+
+            <div className="form__group">
+              <label className="form__label">Title *</label>
+              <input
+                value={formData.title}
+                onChange={(e) => updateField('title', e.target.value)}
+                className="form-input"
+                placeholder="Book title"
+                required
+              />
+            </div>
+
+            <div className="form__group">
+              <label className="form__label">Author *</label>
+              <input
+                value={formData.author}
+                onChange={(e) => updateField('author', e.target.value)}
+                className="form-input"
+                placeholder="Author name"
+                required
+              />
+            </div>
+
+            <div className="form__group">
+              <label className="form__label">Subtitle</label>
+              <input
+                value={formData.subtitle}
+                onChange={(e) => updateField('subtitle', e.target.value)}
+                className="form-input"
+                placeholder="Subtitle (optional)"
+              />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ISBN Lookup */}
-      {mode === 'create' && (
-        <div className="form-group">
-          <label className="form-label">ISBN Lookup</label>
-          <div style={{ display: 'flex', gap: 8 }}>
+      {/* Publication Details Section */}
+      <div className="form__section">
+        <div className="form__section-header">
+          <svg className="form__section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+            <line x1="16" y1="2" x2="16" y2="6" />
+            <line x1="8" y1="2" x2="8" y2="6" />
+            <line x1="3" y1="10" x2="21" y2="10" />
+          </svg>
+          <h2 className="form__section-title">Publication Details</h2>
+        </div>
+
+        <div className="form__row">
+          <div className="form__group">
+            <label className="form__label">Publisher</label>
             <input
-              value={formData.isbn}
-              onChange={(e) => updateField('isbn', e.target.value)}
-              placeholder="Enter ISBN (10 or 13 digits)"
+              value={formData.publisher}
+              onChange={(e) => updateField('publisher', e.target.value)}
               className="form-input"
+              placeholder="Publisher"
             />
-            <button
-              type="button"
-              className="btn btn-secondary"
-              onClick={() => formData.isbn && performISBNLookup(formData.isbn)}
-              disabled={isLookingUpISBN || !formData.isbn}
-            >
-              {isLookingUpISBN ? 'Looking up...' : 'Lookup'}
-            </button>
+          </div>
+
+          <div className="form__group">
+            <label className="form__label">Year</label>
+            <input
+              type="number"
+              value={formData.publicationYear || ''}
+              onChange={(e) => updateField('publicationYear', e.target.value ? parseInt(e.target.value) : undefined)}
+              className="form-input"
+              placeholder="Year"
+            />
           </div>
         </div>
-      )}
 
-      {/* Title */}
-      <div className="form-group">
-        <label className="form-label">Title *</label>
-        <input
-          value={formData.title}
-          onChange={(e) => updateField('title', e.target.value)}
-          className="form-input"
-          placeholder="Book title"
-          required
-        />
-      </div>
+        <div className="form__row">
+          <div className="form__group">
+            <label className="form__label">Pages</label>
+            <input
+              type="number"
+              value={formData.pageCount || ''}
+              onChange={(e) => updateField('pageCount', e.target.value ? parseInt(e.target.value) : undefined)}
+              className="form-input"
+              placeholder="Pages"
+            />
+          </div>
 
-      {/* Author */}
-      <div className="form-group">
-        <label className="form-label">Author *</label>
-        <input
-          value={formData.author}
-          onChange={(e) => updateField('author', e.target.value)}
-          className="form-input"
-          placeholder="Author name"
-          required
-        />
-      </div>
+          <div className="form__group">
+            <label className="form__label">Genre</label>
+            <input
+              value={formData.genre}
+              onChange={(e) => updateField('genre', e.target.value)}
+              className="form-input"
+              placeholder="Genre"
+            />
+          </div>
 
-      {/* Subtitle */}
-      <div className="form-group">
-        <label className="form-label">Subtitle</label>
-        <input
-          value={formData.subtitle}
-          onChange={(e) => updateField('subtitle', e.target.value)}
-          className="form-input"
-          placeholder="Subtitle (optional)"
-        />
-      </div>
-
-      {/* Genre */}
-      <div className="form-group">
-        <label className="form-label">Genre</label>
-        <input
-          value={formData.genre}
-          onChange={(e) => updateField('genre', e.target.value)}
-          className="form-input"
-          placeholder="Genre"
-        />
-      </div>
-
-      {/* Page Count */}
-      <div className="form-group">
-        <label className="form-label">Pages</label>
-        <input
-          type="number"
-          value={formData.pageCount || ''}
-          onChange={(e) => updateField('pageCount', e.target.value ? parseInt(e.target.value) : undefined)}
-          className="form-input"
-          placeholder="Number of pages"
-        />
-      </div>
-
-      {/* Publication Year */}
-      <div className="form-group">
-        <label className="form-label">Publication Year</label>
-        <input
-          type="number"
-          value={formData.publicationYear || ''}
-          onChange={(e) => updateField('publicationYear', e.target.value ? parseInt(e.target.value) : undefined)}
-          className="form-input"
-          placeholder="Year published"
-        />
-      </div>
-
-      {/* Publisher */}
-      <div className="form-group">
-        <label className="form-label">Publisher</label>
-        <input
-          value={formData.publisher}
-          onChange={(e) => updateField('publisher', e.target.value)}
-          className="form-input"
-          placeholder="Publisher"
-        />
-      </div>
-
-      {/* Language */}
-      <div className="form-group">
-        <label className="form-label">Language</label>
-        <input
-          value={formData.language}
-          onChange={(e) => updateField('language', e.target.value)}
-          className="form-input"
-          placeholder="Language"
-        />
-      </div>
-
-      {/* Reading Status */}
-      <div className="form-group">
-        <label className="form-label">Reading Status</label>
-        <select
-          value={formData.readingStatus || ''}
-          onChange={(e) => updateField('readingStatus', e.target.value as ReadingStatus || undefined)}
-          className="form-input"
-        >
-          <option value="">Select status</option>
-          {readingStatuses.map((status) => (
-            <option key={status} value={status}>
-              {status === 'wantToRead' ? 'Want to Read' : status === 'currentlyReading' ? 'Currently Reading' : 'Read'}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Rating */}
-      <div className="form-group">
-        <label className="form-label">Rating</label>
-        <div style={{ display: 'flex', gap: 4 }}>
-          {Array.from({ length: 5 }).map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => updateField('rating', i + 1)}
-              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
-            >
-              <svg
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill={i < (formData.rating || 0) ? 'currentColor' : 'none'}
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ color: i < (formData.rating || 0) ? '#fbbf24' : 'var(--app-border)' }}
-              >
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-              </svg>
-            </button>
-          ))}
+          <div className="form__group">
+            <label className="form__label">Language</label>
+            <input
+              value={formData.language}
+              onChange={(e) => updateField('language', e.target.value)}
+              className="form-input"
+              placeholder="Language"
+            />
+          </div>
         </div>
       </div>
 
-      {/* Tags */}
-      <div className="form-group">
-        <label className="form-label">Tags (comma separated)</label>
-        <input
-          value={formData.tags.join(', ')}
-          onChange={(e) => updateField('tags', e.target.value.split(',').map(t => t.trim()))}
-          className="form-input"
-          placeholder="tag1, tag2, tag3"
-        />
+      {/* Reading Status Section */}
+      <div className="form__section">
+        <div className="form__section-header">
+          <svg className="form__section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+          </svg>
+          <h2 className="form__section-title">Reading Status</h2>
+        </div>
+
+        <div className="form__row">
+          <div className="form__group">
+            <label className="form__label">Status</label>
+            <select
+              value={formData.readingStatus || ''}
+              onChange={(e) => updateField('readingStatus', e.target.value as ReadingStatus || undefined)}
+              className="form-input"
+            >
+              <option value="">Select status</option>
+              {readingStatuses.map((status) => (
+                <option key={status} value={status}>
+                  {status === 'wantToRead' ? 'Want to Read' : status === 'currentlyReading' ? 'Currently Reading' : 'Read'}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form__group">
+            <label className="form__label">Rating</label>
+            <div style={{ display: 'flex', gap: 4, paddingTop: 8 }}>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => updateField('rating', formData.rating === i + 1 ? undefined : i + 1)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill={i < (formData.rating || 0) ? 'currentColor' : 'none'}
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    style={{ color: i < (formData.rating || 0) ? '#fbbf24' : 'var(--app-border)' }}
+                  >
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                </button>
+              ))}
+            </div>
+            <p className="form__hint">Click a star to set rating, click again to clear</p>
+          </div>
+        </div>
       </div>
 
-      {/* Custom Notes */}
-      <div className="form-group">
-        <label className="form-label">Notes</label>
-        <textarea
-          value={formData.customNotes}
-          onChange={(e) => updateField('customNotes', e.target.value)}
-          className="form-input"
-          rows={4}
-          placeholder="Personal notes about this book"
-        />
+      {/* Organization Section */}
+      <div className="form__section">
+        <div className="form__section-header">
+          <svg className="form__section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+            <line x1="7" y1="7" x2="7.01" y2="7" />
+          </svg>
+          <h2 className="form__section-title">Organization</h2>
+        </div>
+
+        <div className="form__group">
+          <label className="form__label">Tags</label>
+          <input
+            value={formData.tags.join(', ')}
+            onChange={(e) => updateField('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
+            className="form-input"
+            placeholder="fiction, favorite, must-read"
+          />
+          <p className="form__hint">Separate tags with commas</p>
+        </div>
+
+        <div className="form__group">
+          <label className="form__label">Notes</label>
+          <textarea
+            value={formData.customNotes}
+            onChange={(e) => updateField('customNotes', e.target.value)}
+            className="form-input"
+            rows={4}
+            placeholder="Personal notes about this book..."
+          />
+        </div>
       </div>
 
       {/* Form Actions */}
-      <div style={{ display: 'flex', gap: 8, marginTop: 24 }}>
+      <div className="form__actions">
         <button type="submit" className="btn btn-primary" disabled={createBook.isPending || updateBook.isPending}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+            <polyline points="17 21 17 13 7 13 7 21" />
+            <polyline points="7 3 7 8 15 8" />
+          </svg>
           {createBook.isPending || updateBook.isPending ? 'Saving...' : 'Save Book'}
         </button>
         <button type="button" className="btn btn-secondary" onClick={() => navigate({ to: '/books' })}>

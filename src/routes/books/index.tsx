@@ -10,6 +10,9 @@ import {
   type SortingState
 } from '@tanstack/react-table'
 import { useAllBooks } from '../../hooks/useBooks'
+import { useViewPreference } from '../../hooks/useViewPreference'
+import { ViewToggle } from '../../components/ui/ViewToggle'
+import { BookGridCard } from '../../components/books/BookGridCard'
 import type { Book } from '../../types'
 
 const columnHelper = createColumnHelper<Book>()
@@ -20,12 +23,23 @@ export function BooksIndex() {
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [viewMode, setViewMode] = useViewPreference('list')
 
   const filteredBooks = useMemo(() => {
     if (!books) return []
-    if (statusFilter === 'all') return books
-    return books.filter(b => b.readingStatus === statusFilter)
-  }, [books, statusFilter])
+    let result = books
+    if (statusFilter !== 'all') {
+      result = result.filter(b => b.readingStatus === statusFilter)
+    }
+    if (globalFilter) {
+      const search = globalFilter.toLowerCase()
+      result = result.filter(b =>
+        b.title.toLowerCase().includes(search) ||
+        b.author.toLowerCase().includes(search)
+      )
+    }
+    return result
+  }, [books, statusFilter, globalFilter])
 
   const columns = useMemo(
     () => [
@@ -62,9 +76,9 @@ export function BooksIndex() {
           const status = row.original.readingStatus
           if (!status) return null
           const statusClass = {
-            wantToRead: 'status-badge status-want-to-read',
-            currentlyReading: 'status-badge status-reading',
-            read: 'status-badge status-read'
+            wantToRead: 'badge badge--status-want',
+            currentlyReading: 'badge badge--status-reading',
+            read: 'badge badge--status-read'
           }[status]
           const statusLabel = {
             wantToRead: 'Want to Read',
@@ -133,8 +147,8 @@ export function BooksIndex() {
 
   return (
     <div className="books-page" style={{ padding: 16 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h1 style={{ fontSize: 24, fontWeight: 600, margin: 0 }}>Books</h1>
+      <div className="page-header">
+        <h1 className="page-header__title">Books</h1>
         <button className="btn btn-primary" onClick={handleAddBook}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="12" y1="5" x2="12" y2="19" />
@@ -144,27 +158,25 @@ export function BooksIndex() {
         </button>
       </div>
 
-      {/* Filters */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+      <div className="filter-bar">
         <input
           type="text"
           placeholder="Search books..."
           value={globalFilter}
           onChange={(e) => setGlobalFilter(e.target.value)}
-          className="form-input"
-          style={{ flex: 1 }}
+          className="form-input filter-bar__search"
         />
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="form-input"
-          style={{ width: 150 }}
+          className="form-input filter-bar__select"
         >
           <option value="all">All Status</option>
           <option value="wantToRead">Want to Read</option>
           <option value="currentlyReading">Reading</option>
           <option value="read">Read</option>
         </select>
+        <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
       </div>
 
       {books?.length === 0 ? (
@@ -177,6 +189,16 @@ export function BooksIndex() {
           <div className="empty-state-description">
             Start adding books to your collection by tapping the Add Book button.
           </div>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="book-grid">
+          {filteredBooks.map((book) => (
+            <BookGridCard
+              key={book.id}
+              book={book}
+              onClick={() => handleBookClick(book)}
+            />
+          ))}
         </div>
       ) : (
         <div className="card">
