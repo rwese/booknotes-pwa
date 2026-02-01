@@ -955,6 +955,24 @@ body {
   width: 150px;
 }
 
+.filter-bar__clear {
+  padding: 10px 16px;
+  background-color: transparent;
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-bar__clear:hover {
+  background-color: var(--app-surface);
+  border-color: var(--app-primary);
+  color: var(--app-primary);
+}
+
 /* ============================================
    Analytics Page Styles
    ============================================ */
@@ -1059,6 +1077,28 @@ body {
 
 .stat-card--want .stat-card__icon {
   color: #a855f7;
+}
+
+/* Clickable stat card */
+.stat-card--clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card--clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card--clickable:focus {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .stat-card--clickable:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* Progress grid */
@@ -1216,6 +1256,24 @@ body {
   font-weight: 500;
 }
 
+/* Clickable rating chart row */
+.rating-chart__row--clickable {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 4px 0;
+  margin: -4px 0;
+  transition: background-color 0.2s;
+}
+
+.rating-chart__row--clickable:hover {
+  background-color: var(--app-surface);
+}
+
+.rating-chart__row--clickable:focus {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
 /* Tag analytics */
 .tag-analytics {
   background-color: var(--app-background);
@@ -1269,6 +1327,28 @@ body {
   padding: 2px 8px;
   font-size: 11px;
   font-weight: 600;
+}
+
+/* Clickable tag */
+.tag-analytics__tag--clickable {
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.tag-analytics__tag--clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.tag-analytics__tag--clickable:focus {
+  outline: 2px solid var(--app-primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .tag-analytics__tag--clickable:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
 }
 
 /* Empty state */

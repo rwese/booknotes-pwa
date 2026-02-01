@@ -218,7 +218,7 @@ export function BooksIndex() {
         />
         <select
           value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
+          onChange={(e) => setParams({ status: e.target.value === 'all' ? '' : e.target.value })}
           className="form-input filter-bar__select"
         >
           <option value="all">All Status</option>
@@ -226,6 +226,50 @@ export function BooksIndex() {
           <option value="currentlyReading">Reading</option>
           <option value="read">Read</option>
         </select>
+        <select
+          value={genreFilter}
+          onChange={(e) => setParams({ genre: e.target.value })}
+          className="form-input filter-bar__select"
+        >
+          <option value="">All Genres</option>
+          {genres.map(genre => (
+            <option key={genre} value={genre}>{genre}</option>
+          ))}
+        </select>
+        <select
+          value={tagFilter}
+          onChange={(e) => setParams({ tag: e.target.value })}
+          className="form-input filter-bar__select"
+        >
+          <option value="">All Tags</option>
+          {tags.map(tag => (
+            <option key={tag} value={tag}>{tag}</option>
+          ))}
+        </select>
+        <select
+          value={ratingFilter || ''}
+          onChange={(e) => setParams({ rating: e.target.value })}
+          className="form-input filter-bar__select"
+        >
+          <option value="">All Ratings</option>
+          <option value="5">5 Stars</option>
+          <option value="4">4 Stars</option>
+          <option value="3">3 Stars</option>
+          <option value="2">2 Stars</option>
+          <option value="1">1 Star</option>
+        </select>
+        {hasActiveFilters && (
+          <button
+            onClick={() => {
+              clearParams()
+              setGlobalFilter('')
+            }}
+            className="filter-bar__clear"
+            aria-label="Clear all filters"
+          >
+            Clear
+          </button>
+        )}
         <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
       </div>
 

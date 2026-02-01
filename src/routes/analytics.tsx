@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useNavigate } from '@tanstack/react-router'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -71,9 +72,9 @@ const TagsIcon = ({ className }: { className?: string }) => (
 )
 
 // Helper Components
-function StatCard({ icon, value, label, colorClass }: { icon: React.ReactNode; value: number; label: string; colorClass: string }) {
+function StatCard({ icon, value, label, colorClass, onClick }: { icon: React.ReactNode; value: number; label: string; colorClass: string; onClick?: () => void }) {
   return (
-    <div className={`stat-card ${colorClass}`}>
+    <div className={`stat-card ${colorClass}${onClick ? ' stat-card--clickable' : ''}`} onClick={onClick} onKeyDown={(e) => e.key === 'Enter' && onClick?.()} role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined}>
       <div className="stat-card__icon">{icon}</div>
       <div className="stat-card__value">{value}</div>
       <div className="stat-card__label">{label}</div>
@@ -104,7 +105,7 @@ function ChartCard({ title, children, emptyMessage }: { title: string; children:
   )
 }
 
-function RatingBarChart({ distribution }: { distribution: Record<number, number> }) {
+function RatingBarChart({ distribution, onRatingClick }: { distribution: Record<number, number>; onRatingClick?: (rating: number) => void }) {
   const maxCount = Math.max(...Object.values(distribution), 1)
 
   return (
@@ -114,7 +115,14 @@ function RatingBarChart({ distribution }: { distribution: Record<number, number>
         const percentage = (count / maxCount) * 100
 
         return (
-          <div key={rating} className="rating-chart__row">
+          <div
+            key={rating}
+            className={`rating-chart__row${onRatingClick ? ' rating-chart__row--clickable' : ''}`}
+            onClick={() => onRatingClick?.(rating)}
+            onKeyDown={(e) => e.key === 'Enter' && onRatingClick?.(rating)}
+            role={onRatingClick ? 'button' : undefined}
+            tabIndex={onRatingClick ? 0 : undefined}
+          >
             <div className="rating-chart__stars">
               {[...Array(5)].map((_, i) => (
                 <StarIcon
@@ -142,6 +150,8 @@ function formatReadingTime(ms: number): string {
 }
 
 export function AnalyticsPage() {
+  const navigate = useNavigate()
+
   const [bookStats, setBookStats] = useState<{
     booksByStatus: Record<string, number>
     genreCount: Record<string, number>
@@ -160,6 +170,12 @@ export function AnalyticsPage() {
   } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Navigate to books with filter hash
+  const navigateToBooks = (filters: Record<string, string>) => {
+    const hashParams = new URLSearchParams(filters).toString()
+    navigate({ to: `/books#${hashParams}` })
+  }
 
   useEffect(() => {
     const loadStats = async () => {
@@ -256,6 +272,21 @@ export function AnalyticsPage() {
     }]
   }
 
+  const genreChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    onClick: (_: Event, elements: Array<{ index: number }>) => {
+      if (elements.length > 0) {
+        const index = elements[0].index
+        const genres = Object.keys(bookStats.genreCount)
+        const genre = genres[index]
+        if (genre) {
+          navigateToBooks({ genre })
+        }
+      }
+    }
+  }
+
   // Reading sessions over time
   const months = Object.keys(readingStats.byMonth).sort().slice(-6)
   const readingChartData = {
@@ -287,24 +318,28 @@ export function AnalyticsPage() {
           value={bookStats.totalBooks}
           label="Total Books"
           colorClass="stat-card--total"
+          onClick={() => navigate({ to: '/books' })}
         />
         <StatCard
           icon={<CheckIcon className="stat-card__icon" />}
           value={bookStats.booksByStatus.read || 0}
           label="Books Read"
           colorClass="stat-card--read"
+          onClick={() => navigateToBooks({ status: 'read' })}
         />
         <StatCard
           icon={<ReadingIcon className="stat-card__icon" />}
           value={bookStats.booksByStatus.currentlyReading || 0}
           label="Currently Reading"
           colorClass="stat-card--reading"
+          onClick={() => navigateToBooks({ status: 'currentlyReading' })}
         />
         <StatCard
           icon={<TrendingUpIcon className="stat-card__icon" />}
           value={bookStats.booksByStatus.wantToRead || 0}
           label="Want to Read"
           colorClass="stat-card--want"
+          onClick={() => navigateToBooks({ status: 'wantToRead' })}
         />
       </div>
 
@@ -331,7 +366,7 @@ export function AnalyticsPage() {
         <div className="charts-section__grid">
           {/* Rating Distribution */}
           <ChartCard title="Rating Distribution" emptyMessage="No rated books yet">
-            {hasRatings ? <RatingBarChart distribution={bookStats.ratingDistribution} /> : null}
+            {hasRatings ? <RatingBarChart distribution={bookStats.ratingDistribution} onRatingClick={(rating) => navigateToBooks({ rating: rating.toString() })} /> : null}
           </ChartCard>
 
           {/* Reading Status */}
@@ -341,7 +376,7 @@ export function AnalyticsPage() {
 
           {/* Books by Genre */}
           <ChartCard title="Books by Genre" emptyMessage="No genre data yet">
-            {hasGenres ? <Bar data={genreChartData} /> : null}
+            {hasGenres ? <Bar data={genreChartData} options={genreChartOptions} /> : null}
           </ChartCard>
 
           {/* Pages Over Time */}
@@ -360,7 +395,14 @@ export function AnalyticsPage() {
           </div>
           <div className="tag-analytics__list">
             {topTags.map(([tag, count]) => (
-              <span key={tag} className="tag-analytics__tag">
+              <span
+                key={tag}
+                className="tag-analytics__tag tag-analytics__tag--clickable"
+                onClick={() => navigateToBooks({ tag })}
+                onKeyDown={(e) => e.key === 'Enter' && navigateToBooks({ tag })}
+                role="button"
+                tabIndex={0}
+              >
                 {tag}
                 <span className="tag-analytics__count">{count}</span>
               </span>
