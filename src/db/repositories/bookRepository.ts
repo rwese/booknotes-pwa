@@ -153,6 +153,33 @@ export const bookRepository = {
     return Array.from(tags).sort()
   },
 
+  async getAuthors(): Promise<string[]> {
+    const books = await db.books.toArray()
+    const authors = new Set<string>()
+    books.forEach((book) => {
+      if (book.author) authors.add(book.author)
+    })
+    return Array.from(authors).sort()
+  },
+
+  async getPublishers(): Promise<string[]> {
+    const books = await db.books.toArray()
+    const publishers = new Set<string>()
+    books.forEach((book) => {
+      if (book.publisher) publishers.add(book.publisher)
+    })
+    return Array.from(publishers).sort()
+  },
+
+  async getLanguages(): Promise<string[]> {
+    const books = await db.books.toArray()
+    const languages = new Set<string>()
+    books.forEach((book) => {
+      if (book.language) languages.add(book.language)
+    })
+    return Array.from(languages).sort()
+  },
+
   async getStatistics() {
     const books = await db.books.toArray()
 

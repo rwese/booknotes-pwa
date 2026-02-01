@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useBook, useCreateBook, useUpdateBook } from '../../hooks/useBooks'
+import { useBook, useCreateBook, useUpdateBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
 import { isbnService } from '../../services/isbnService'
 import { coverImageService } from '../../services/coverImageService'
+import { AutocompleteInput } from '../ui/AutocompleteInput'
+import { TagsInput } from '../ui/TagsInput'
 import type { BookFormData, ReadingStatus } from '../../types'
 
 interface BookFormProps {
@@ -20,6 +22,13 @@ export function BookForm({ mode }: BookFormProps) {
   const createBook = useCreateBook()
   const updateBook = useUpdateBook()
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Autocomplete suggestions
+  const { data: authorSuggestions = [] } = useAuthors()
+  const { data: publisherSuggestions = [] } = usePublishers()
+  const { data: genreSuggestions = [] } = useGenres()
+  const { data: languageSuggestions = [] } = useLanguages()
+  const { data: tagSuggestions = [] } = useAllTags()
 
   const [formData, setFormData] = useState<BookFormData>({
     title: '',
@@ -259,62 +268,63 @@ export function BookForm({ mode }: BookFormProps) {
               <span className="form__cover-upload-text">Click to upload cover</span>
             </div>
           )}
-          <div className="form__cover-actions" style={{ flex: 1 }}>
-            {mode === 'create' && (
-              <div className="form__group">
-                <label className="form__label">ISBN Lookup</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    value={formData.isbn}
-                    onChange={(e) => updateField('isbn', e.target.value)}
-                    placeholder="Enter ISBN"
-                    className="form-input"
-                    style={{ flex: 1 }}
-                  />
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => formData.isbn && performISBNLookup(formData.isbn)}
-                    disabled={isLookingUpISBN || !formData.isbn}
-                  >
-                    {isLookingUpISBN ? 'Looking...' : 'Lookup'}
-                  </button>
-                </div>
-                <p className="form__hint">Enter ISBN to auto-fill book details</p>
+        </div>
+
+        <div className="form__cover-actions">
+          {mode === 'create' && (
+            <div className="form__group">
+              <label className="form__label">ISBN Lookup</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={formData.isbn}
+                  onChange={(e) => updateField('isbn', e.target.value)}
+                  placeholder="Enter ISBN"
+                  className="form-input"
+                  style={{ flex: 1 }}
+                />
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => formData.isbn && performISBNLookup(formData.isbn)}
+                  disabled={isLookingUpISBN || !formData.isbn}
+                >
+                  {isLookingUpISBN ? 'Looking...' : 'Lookup'}
+                </button>
               </div>
-            )}
-
-            <div className="form__group">
-              <label className="form__label">Title *</label>
-              <input
-                value={formData.title}
-                onChange={(e) => updateField('title', e.target.value)}
-                className="form-input"
-                placeholder="Book title"
-                required
-              />
+              <p className="form__hint">Enter ISBN to auto-fill book details</p>
             </div>
+          )}
 
-            <div className="form__group">
-              <label className="form__label">Author *</label>
-              <input
-                value={formData.author}
-                onChange={(e) => updateField('author', e.target.value)}
-                className="form-input"
-                placeholder="Author name"
-                required
-              />
-            </div>
+          <div className="form__group">
+            <label className="form__label">Title *</label>
+            <input
+              value={formData.title}
+              onChange={(e) => updateField('title', e.target.value)}
+              className="form-input"
+              placeholder="Book title"
+              required
+            />
+          </div>
 
-            <div className="form__group">
-              <label className="form__label">Subtitle</label>
-              <input
-                value={formData.subtitle}
-                onChange={(e) => updateField('subtitle', e.target.value)}
-                className="form-input"
-                placeholder="Subtitle (optional)"
-              />
-            </div>
+          <div className="form__group">
+            <label className="form__label">Author *</label>
+            <AutocompleteInput
+              value={formData.author}
+              onChange={(value) => updateField('author', value)}
+              suggestions={authorSuggestions}
+              placeholder="Author name"
+              required
+            />
+          </div>
+
+          <div className="form__group">
+            <label className="form__label">Subtitle</label>
+            <input
+              value={formData.subtitle}
+              onChange={(e) => updateField('subtitle', e.target.value)}
+              className="form-input"
+              placeholder="Subtitle (optional)"
+            />
           </div>
         </div>
       </div>
@@ -334,10 +344,10 @@ export function BookForm({ mode }: BookFormProps) {
         <div className="form__row">
           <div className="form__group">
             <label className="form__label">Publisher</label>
-            <input
-              value={formData.publisher}
-              onChange={(e) => updateField('publisher', e.target.value)}
-              className="form-input"
+            <AutocompleteInput
+              value={formData.publisher || ''}
+              onChange={(value) => updateField('publisher', value)}
+              suggestions={publisherSuggestions}
               placeholder="Publisher"
             />
           </div>
@@ -368,20 +378,20 @@ export function BookForm({ mode }: BookFormProps) {
 
           <div className="form__group">
             <label className="form__label">Genre</label>
-            <input
-              value={formData.genre}
-              onChange={(e) => updateField('genre', e.target.value)}
-              className="form-input"
+            <AutocompleteInput
+              value={formData.genre || ''}
+              onChange={(value) => updateField('genre', value)}
+              suggestions={genreSuggestions}
               placeholder="Genre"
             />
           </div>
 
           <div className="form__group">
             <label className="form__label">Language</label>
-            <input
-              value={formData.language}
-              onChange={(e) => updateField('language', e.target.value)}
-              className="form-input"
+            <AutocompleteInput
+              value={formData.language || ''}
+              onChange={(value) => updateField('language', value)}
+              suggestions={languageSuggestions}
               placeholder="Language"
             />
           </div>
@@ -455,13 +465,13 @@ export function BookForm({ mode }: BookFormProps) {
 
         <div className="form__group">
           <label className="form__label">Tags</label>
-          <input
-            value={formData.tags.join(', ')}
-            onChange={(e) => updateField('tags', e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
-            className="form-input"
-            placeholder="fiction, favorite, must-read"
+          <TagsInput
+            value={formData.tags}
+            onChange={(tags) => updateField('tags', tags)}
+            suggestions={tagSuggestions}
+            placeholder="Add tags..."
           />
-          <p className="form__hint">Separate tags with commas</p>
+          <p className="form__hint">Type and press Enter or comma to add tags</p>
         </div>
 
         <div className="form__group">

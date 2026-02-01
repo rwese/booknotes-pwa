@@ -40,6 +40,27 @@ export function useAllTags() {
   })
 }
 
+export function useAuthors() {
+  return useQuery({
+    queryKey: ['authors'],
+    queryFn: () => bookRepository.getAuthors()
+  })
+}
+
+export function usePublishers() {
+  return useQuery({
+    queryKey: ['publishers'],
+    queryFn: () => bookRepository.getPublishers()
+  })
+}
+
+export function useLanguages() {
+  return useQuery({
+    queryKey: ['languages'],
+    queryFn: () => bookRepository.getLanguages()
+  })
+}
+
 export function useBookStatistics() {
   return useQuery({
     queryKey: ['statistics'],

@@ -1,30 +1,46 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import {
-  useReactTable,
-  getCoreRowModel,
-  getSortedRowModel,
-  getFilteredRowModel,
-  flexRender,
-  createColumnHelper,
-  type SortingState
-} from '@tanstack/react-table'
 import { useAllBooks } from '../../hooks/useBooks'
 import { useViewPreference } from '../../hooks/useViewPreference'
 import { useHashParams } from '../../hooks/useHashParams'
 import { ViewToggle } from '../../components/ui/ViewToggle'
+import { FilterToggle } from '../../components/ui/FilterToggle'
 import { BookGridCard } from '../../components/books/BookGridCard'
 import type { Book } from '../../types'
-
-const columnHelper = createColumnHelper<Book>()
 
 export function BooksIndex() {
   const navigate = useNavigate()
   const { data: books, isLoading, error } = useAllBooks()
-  const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState('')
   const [viewMode, setViewMode] = useViewPreference('list')
+  const [showFilters, setShowFilters] = useState(false)
   const { params, setParams, clearParams } = useHashParams()
+
+  // Track cover blob URLs for cleanup
+  const coverUrlsRef = useRef<Map<string, string>>(new Map())
+
+  const getCoverUrl = useCallback((book: Book): string | null => {
+    const coverData = book.coverThumbnailData || book.coverImageData
+    if (!coverData) return null
+
+    // Reuse existing URL if we have one for this book
+    const existing = coverUrlsRef.current.get(book.id)
+    if (existing) return existing
+
+    // Create new URL and cache it
+    const url = URL.createObjectURL(coverData)
+    coverUrlsRef.current.set(book.id, url)
+    return url
+  }, [])
+
+  // Cleanup URLs on unmount
+  useEffect(() => {
+    const urlsRef = coverUrlsRef.current
+    return () => {
+      urlsRef.forEach(url => URL.revokeObjectURL(url))
+      urlsRef.clear()
+    }
+  }, [])
 
   // Extract filter values from hash params
   const statusFilter = params.status || 'all'
@@ -54,6 +70,17 @@ export function BooksIndex() {
   }, [books])
 
   const hasActiveFilters = statusFilter !== 'all' || genreFilter || tagFilter || ratingFilter > 0 || globalFilter
+
+  // Count active filters for the badge
+  const activeFilterCount = useMemo(() => {
+    let count = 0
+    if (statusFilter !== 'all') count++
+    if (genreFilter) count++
+    if (tagFilter) count++
+    if (ratingFilter > 0) count++
+    if (globalFilter) count++
+    return count
+  }, [statusFilter, genreFilter, tagFilter, ratingFilter, globalFilter])
 
   const filteredBooks = useMemo(() => {
     if (!books) return []
@@ -90,84 +117,6 @@ export function BooksIndex() {
 
     return result
   }, [books, statusFilter, genreFilter, tagFilter, ratingFilter, globalFilter])
-
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor('coverThumbnailData', {
-        header: '',
-        cell: ({ row }) => {
-          const coverData = row.original.coverThumbnailData || row.original.coverImageData
-          if (coverData) {
-            const url = URL.createObjectURL(coverData)
-            return (
-              <img
-                src={url}
-                alt={`${row.original.title} cover`}
-                className="book-cover"
-                onLoad={() => URL.revokeObjectURL(url)}
-              />
-            )
-          }
-          return <div className="book-cover skeleton" />
-        },
-        size: 80
-      }),
-      columnHelper.accessor('title', {
-        header: 'Title',
-        cell: ({ row }) => <div className="book-title">{row.original.title}</div>
-      }),
-      columnHelper.accessor('author', {
-        header: 'Author',
-        cell: ({ row }) => <div className="book-author">{row.original.author}</div>
-      }),
-      columnHelper.accessor('readingStatus', {
-        header: 'Status',
-        cell: ({ row }) => {
-          const status = row.original.readingStatus
-          if (!status) return null
-          const statusClass = {
-            wantToRead: 'badge badge--status-want',
-            currentlyReading: 'badge badge--status-reading',
-            read: 'badge badge--status-read'
-          }[status]
-          const statusLabel = {
-            wantToRead: 'Want to Read',
-            currentlyReading: 'Reading',
-            read: 'Read'
-          }[status]
-          return <span className={statusClass}>{statusLabel}</span>
-        }
-      }),
-      columnHelper.accessor('rating', {
-        header: 'Rating',
-        cell: ({ row }) => {
-          const rating = row.original.rating
-          if (!rating) return null
-          return (
-            <div className="star-rating">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <svg key={i} className={`star ${i < rating ? '' : 'empty'}`} viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                </svg>
-              ))}
-            </div>
-          )
-        }
-      })
-    ],
-    []
-  )
-
-  const table = useReactTable({
-    data: filteredBooks,
-    columns,
-    state: { sorting, globalFilter },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel()
-  })
 
   const handleBookClick = (book: Book) => {
     navigate({ to: '/books/$bookId', params: { bookId: book.id } })
@@ -216,6 +165,16 @@ export function BooksIndex() {
           onChange={(e) => setGlobalFilter(e.target.value)}
           className="form-input filter-bar__search"
         />
+        <div className="filter-bar__controls">
+          <FilterToggle
+            isOpen={showFilters}
+            onToggle={() => setShowFilters(!showFilters)}
+            activeCount={activeFilterCount}
+          />
+          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+        </div>
+      </div>
+      <div className={`filter-bar__expandable ${showFilters ? 'filter-bar__expandable--open' : ''}`}>
         <select
           value={statusFilter}
           onChange={(e) => setParams({ status: e.target.value === 'all' ? '' : e.target.value })}
@@ -263,6 +222,7 @@ export function BooksIndex() {
             onClick={() => {
               clearParams()
               setGlobalFilter('')
+              setShowFilters(false)
             }}
             className="filter-bar__clear"
             aria-label="Clear all filters"
@@ -270,7 +230,6 @@ export function BooksIndex() {
             Clear
           </button>
         )}
-        <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
       </div>
 
       {books?.length === 0 ? (
@@ -295,49 +254,78 @@ export function BooksIndex() {
           ))}
         </div>
       ) : (
-        <div className="card">
-          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-            <thead>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <tr key={headerGroup.id} style={{ borderBottom: '1px solid var(--app-border)' }}>
-                  {headerGroup.headers.map((header) => (
-                    <th
-                      key={header.id}
-                      onClick={header.column.getToggleSortingHandler()}
-                      style={{
-                        padding: '12px',
-                        textAlign: 'left',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        userSelect: 'none'
-                      }}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {{
-                        asc: ' ↑',
-                        desc: ' ↓'
-                      }[header.column.getIsSorted() as string] ?? null}
-                    </th>
-                  ))}
-                </tr>
-              ))}
-            </thead>
-            <tbody>
-              {table.getRowModel().rows.map((row) => (
-                <tr
-                  key={row.id}
-                  onClick={() => handleBookClick(row.original)}
-                  style={{ cursor: 'pointer', borderBottom: '1px solid var(--app-border)' }}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} style={{ padding: '12px' }}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="book-list">
+          {filteredBooks.map((book) => {
+            const coverUrl = getCoverUrl(book)
+            const statusClass = book.readingStatus ? {
+              wantToRead: 'badge badge--status-want',
+              currentlyReading: 'badge badge--status-reading',
+              read: 'badge badge--status-read'
+            }[book.readingStatus] : null
+            const statusLabel = book.readingStatus ? {
+              wantToRead: 'Want to Read',
+              currentlyReading: 'Reading',
+              read: 'Read'
+            }[book.readingStatus] : null
+
+            // Build metadata line
+            const metaParts = [
+              book.author,
+              book.publicationYear,
+              book.pageCount && `${book.pageCount} pp`,
+              book.genre
+            ].filter(Boolean)
+
+            return (
+              <div
+                key={book.id}
+                className="book-list-item"
+                onClick={() => handleBookClick(book)}
+              >
+                {coverUrl ? (
+                  <img
+                    src={coverUrl}
+                    alt={`${book.title} cover`}
+                    className="book-list-item__cover"
+                  />
+                ) : (
+                  <div className="book-list-item__cover book-list-item__cover--placeholder">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+                    </svg>
+                  </div>
+                )}
+                <div className="book-list-item__content">
+                  <div className="book-list-item__row1">
+                    <span className="book-list-item__title">{book.title}</span>
+                    <div className="book-list-item__meta-right">
+                      {book.rating && (
+                        <div className="book-list-item__rating">
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <svg
+                              key={i}
+                              className={`star ${i < book.rating! ? '' : 'empty'}`}
+                              viewBox="0 0 24 24"
+                              fill="currentColor"
+                            >
+                              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                            </svg>
+                          ))}
+                        </div>
+                      )}
+                      {statusClass && statusLabel && (
+                        <span className={statusClass}>{statusLabel}</span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="book-list-item__row2">
+                    {metaParts.join(' · ')}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
