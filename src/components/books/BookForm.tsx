@@ -486,14 +486,7 @@ export function BookForm({ mode }: BookFormProps) {
         </div>
       </div>
 
-      {/* Form Actions */}
-      <div className="form__actions">
-        <button type="button" className="btn btn-secondary" onClick={handleGoBack}>
-          Cancel
-        </button>
-      </div>
-
-      <button className="fab fab--back" onClick={handleGoBack} aria-label="Go Back">
+      <button className="fab fab--back" onClick={handleGoBack} type="button" aria-label="Go Back">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="15 18 9 12 15 6" />
         </svg>
