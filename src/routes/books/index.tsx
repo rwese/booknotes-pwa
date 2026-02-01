@@ -11,6 +11,7 @@ import {
 } from '@tanstack/react-table'
 import { useAllBooks } from '../../hooks/useBooks'
 import { useViewPreference } from '../../hooks/useViewPreference'
+import { useHashParams } from '../../hooks/useHashParams'
 import { ViewToggle } from '../../components/ui/ViewToggle'
 import { BookGridCard } from '../../components/books/BookGridCard'
 import type { Book } from '../../types'
@@ -22,15 +23,63 @@ export function BooksIndex() {
   const { data: books, isLoading, error } = useAllBooks()
   const [sorting, setSorting] = useState<SortingState>([])
   const [globalFilter, setGlobalFilter] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [viewMode, setViewMode] = useViewPreference('list')
+  const { params, setParams, clearParams } = useHashParams()
+
+  // Extract filter values from hash params
+  const statusFilter = params.status || 'all'
+  const genreFilter = params.genre || ''
+  const tagFilter = params.tag || ''
+  const ratingFilter = params.rating ? parseInt(params.rating, 10) : 0
+
+  // Get unique genres and tags from books
+  const genres = useMemo(() => {
+    if (!books) return []
+    const genreSet = new Set<string>()
+    books.forEach(book => {
+      if (book.genre) genreSet.add(book.genre)
+    })
+    return Array.from(genreSet).sort()
+  }, [books])
+
+  const tags = useMemo(() => {
+    if (!books) return []
+    const tagSet = new Set<string>()
+    books.forEach(book => {
+      if (book.tags) {
+        book.tags.forEach(tag => tagSet.add(tag))
+      }
+    })
+    return Array.from(tagSet).sort()
+  }, [books])
+
+  const hasActiveFilters = statusFilter !== 'all' || genreFilter || tagFilter || ratingFilter > 0 || globalFilter
 
   const filteredBooks = useMemo(() => {
     if (!books) return []
     let result = books
+
+    // Status filter
     if (statusFilter !== 'all') {
       result = result.filter(b => b.readingStatus === statusFilter)
     }
+
+    // Genre filter
+    if (genreFilter) {
+      result = result.filter(b => b.genre === genreFilter)
+    }
+
+    // Tag filter
+    if (tagFilter) {
+      result = result.filter(b => b.tags?.includes(tagFilter))
+    }
+
+    // Rating filter
+    if (ratingFilter > 0) {
+      result = result.filter(b => b.rating === ratingFilter)
+    }
+
+    // Search filter
     if (globalFilter) {
       const search = globalFilter.toLowerCase()
       result = result.filter(b =>
@@ -38,8 +87,9 @@ export function BooksIndex() {
         b.author.toLowerCase().includes(search)
       )
     }
+
     return result
-  }, [books, statusFilter, globalFilter])
+  }, [books, statusFilter, genreFilter, tagFilter, ratingFilter, globalFilter])
 
   const columns = useMemo(
     () => [
@@ -149,14 +199,14 @@ export function BooksIndex() {
     <div className="books-page" style={{ padding: 16 }}>
       <div className="page-header">
         <h1 className="page-header__title">Books</h1>
-        <button className="btn btn-primary" onClick={handleAddBook}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Add Book
-        </button>
       </div>
+
+      <button className="fab" onClick={handleAddBook} aria-label="Add Book">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <line x1="12" y1="5" x2="12" y2="19" />
+          <line x1="5" y1="12" x2="19" y2="12" />
+        </svg>
+      </button>
 
       <div className="filter-bar">
         <input

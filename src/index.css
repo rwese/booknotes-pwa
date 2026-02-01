@@ -482,6 +482,12 @@ body {
   gap: 16px;
 }
 
+.book-grid .book-card--grid {
+  /* Browser-native virtualization for off-screen cards */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 280px;
+}
+
 .book-card--grid {
   background-color: var(--app-background);
   border: 1px solid var(--app-border);
@@ -1303,4 +1309,69 @@ body {
   justify-content: center;
   padding: 48px;
   color: #64748b;
+}
+
+/* Floating Action Button */
+.fab {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: var(--app-primary);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
+}
+
+.fab:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25);
+}
+
+.fab:active {
+  transform: scale(0.95);
+}
+
+.fab:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.fab--mini {
+  width: 40px;
+  height: 40px;
+}
+
+.fab--danger {
+  background-color: #ef4444;
+}
+
+.fab--danger:hover {
+  background-color: #dc2626;
+}
+
+/* Offset mini FAB above the main FAB */
+.fab--mini.fab--danger {
+  bottom: 146px;
+}
+
+/* Back button positioned at bottom left */
+.fab--back {
+  left: 16px;
+  right: auto;
+  background-color: var(--app-surface);
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+}
+
+.fab--back:hover {
+  background-color: var(--app-border);
 }

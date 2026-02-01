@@ -46,6 +46,40 @@ export function BookForm({ mode }: BookFormProps) {
   const [isLookingUpISBN, setIsLookingUpISBN] = useState(false)
   const [isbnLookupError, setIsbnLookupError] = useState<string | null>(null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
+  const [initialFormData, setInitialFormData] = useState<BookFormData | null>(null)
+  const [initialCover, setInitialCover] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
+
+  const hasUnsavedChanges = (() => {
+    if (!initialFormData) return formData.title !== '' || formData.author !== ''
+
+    const dataChanged =
+      formData.title !== initialFormData.title ||
+      formData.author !== initialFormData.author ||
+      formData.subtitle !== initialFormData.subtitle ||
+      formData.publisher !== initialFormData.publisher ||
+      formData.publicationYear !== initialFormData.publicationYear ||
+      formData.pageCount !== initialFormData.pageCount ||
+      formData.genre !== initialFormData.genre ||
+      formData.language !== initialFormData.language ||
+      formData.readingStatus !== initialFormData.readingStatus ||
+      formData.rating !== initialFormData.rating ||
+      formData.tags.join(',') !== initialFormData.tags.join(',') ||
+      formData.customNotes !== initialFormData.customNotes
+
+    const coverChanged = !!(croppedCover && !initialCover)
+
+    return dataChanged || coverChanged
+  })()
+
+  const handleGoBack = () => {
+    if (hasUnsavedChanges) {
+      if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
+        navigate({ to: '/books' })
+      }
+    } else {
+      navigate({ to: '/books' })
+    }
+  }
 
   useEffect(() => {
     if (croppedCover) {
@@ -70,7 +104,7 @@ export function BookForm({ mode }: BookFormProps) {
   useEffect(() => {
     if (mode === 'edit' && existingBook && !formInitialized) {
       setFormInitialized(true)
-      setFormData({
+      const initialData = {
         title: existingBook.title,
         author: existingBook.author,
         isbn: existingBook.isbn || '',
@@ -89,12 +123,16 @@ export function BookForm({ mode }: BookFormProps) {
         purchaseDate: existingBook.purchaseDate || '',
         purchasePrice: existingBook.purchasePrice,
         customNotes: existingBook.customNotes || ''
-      })
+      }
+      setFormData(initialData)
+      setInitialFormData(initialData)
       if (existingBook.coverImageData) {
-        setCroppedCover({
+        const coverData = {
           image: existingBook.coverImageData,
           thumbnail: existingBook.coverThumbnailData || existingBook.coverImageData
-        })
+        }
+        setCroppedCover(coverData)
+        setInitialCover(coverData)
       }
     }
   }, [mode, existingBook, formInitialized])
@@ -440,18 +478,24 @@ export function BookForm({ mode }: BookFormProps) {
 
       {/* Form Actions */}
       <div className="form__actions">
-        <button type="submit" className="btn btn-primary" disabled={createBook.isPending || updateBook.isPending}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          {createBook.isPending || updateBook.isPending ? 'Saving...' : 'Save Book'}
-        </button>
-        <button type="button" className="btn btn-secondary" onClick={() => navigate({ to: '/books' })}>
+        <button type="button" className="btn btn-secondary" onClick={handleGoBack}>
           Cancel
         </button>
       </div>
+
+      <button className="fab fab--back" onClick={handleGoBack} aria-label="Go Back">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+
+      <button className="fab" type="submit" disabled={createBook.isPending || updateBook.isPending} aria-label="Save Book">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+          <polyline points="17 21 17 13 7 13 7 21" />
+          <polyline points="7 3 7 8 15 8" />
+        </svg>
+      </button>
     </form>
   )
 }
