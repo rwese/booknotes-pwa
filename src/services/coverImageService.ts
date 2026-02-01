@@ -83,9 +83,11 @@ export class CoverImageService {
   }
 
   async generateThumbnail(imageBlob: Blob, targetWidth = 200, targetHeight = 300): Promise<Blob> {
+    const objectUrl = URL.createObjectURL(imageBlob)
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
@@ -122,15 +124,20 @@ export class CoverImageService {
           0.8
         )
       }
-      img.onerror = () => reject(new Error('Failed to load image'))
-      img.src = URL.createObjectURL(imageBlob)
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error('Failed to load image'))
+      }
+      img.src = objectUrl
     })
   }
 
   async generateBlurredThumbnail(thumbnailBlob: Blob, blurRadius = 10): Promise<Blob | undefined> {
+    const objectUrl = URL.createObjectURL(thumbnailBlob)
     return new Promise((resolve) => {
       const img = new Image()
       img.onload = () => {
+        URL.revokeObjectURL(objectUrl)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
@@ -164,8 +171,11 @@ export class CoverImageService {
           0.5
         )
       }
-      img.onerror = () => resolve(undefined)
-      img.src = URL.createObjectURL(thumbnailBlob)
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        resolve(undefined)
+      }
+      img.src = objectUrl
     })
   }
 
@@ -184,9 +194,11 @@ export class CoverImageService {
   }
 
   async compressImage(blob: Blob, maxWidth = 800, quality = 0.8): Promise<Blob> {
+    const objectUrl = URL.createObjectURL(blob)
     return new Promise((resolve, reject) => {
       const img = new Image()
       img.onload = async () => {
+        URL.revokeObjectURL(objectUrl)
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
 
@@ -220,8 +232,11 @@ export class CoverImageService {
           quality
         )
       }
-      img.onerror = () => reject(new Error('Failed to load image'))
-      img.src = URL.createObjectURL(blob)
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error('Failed to load image'))
+      }
+      img.src = objectUrl
     })
   }
 }

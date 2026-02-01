@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { exportService, type ImportStrategy } from '../services/exportService'
 import { useOfflineStatus } from '../hooks/useOfflineStatus'
 
 export function SettingsPage() {
+  const queryClient = useQueryClient()
   const isOffline = useOfflineStatus()
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
@@ -51,6 +53,8 @@ export function SettingsPage() {
         result = await exportService.importFromJSON(selectedFile, importStrategy)
       }
       setImportResult(result)
+      queryClient.invalidateQueries({ queryKey: ['books', 'all'] })
+      queryClient.invalidateQueries({ queryKey: ['book'] })
     } catch (error) {
       console.error('Import failed:', error)
       setImportResult({
