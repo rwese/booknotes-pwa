@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -29,40 +29,196 @@ ChartJS.register(
   Filler
 )
 
+// SVG Icons
+const BookIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+  </svg>
+)
+
+const CheckIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+)
+
+const ReadingIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+  </svg>
+)
+
+const StarIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+  </svg>
+)
+
+const TrendingUpIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
+    <polyline points="17 6 23 6 23 12" />
+  </svg>
+)
+
+const TagsIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+    <line x1="7" y1="7" x2="7.01" y2="7" />
+  </svg>
+)
+
+// Helper Components
+function StatCard({ icon, value, label, colorClass }: { icon: React.ReactNode; value: number; label: string; colorClass: string }) {
+  return (
+    <div className={`stat-card ${colorClass}`}>
+      <div className="stat-card__icon">{icon}</div>
+      <div className="stat-card__value">{value}</div>
+      <div className="stat-card__label">{label}</div>
+    </div>
+  )
+}
+
+function ProgressCard({ value, label, unit }: { value: number | string; label: string; unit?: string }) {
+  return (
+    <div className="progress-card">
+      <div className="progress-card__value">{value}</div>
+      <div className="progress-card__label">{label}</div>
+      {unit && <div className="progress-card__unit">{unit}</div>}
+    </div>
+  )
+}
+
+function ChartCard({ title, children, emptyMessage }: { title: string; children: React.ReactNode; emptyMessage?: string }) {
+  return (
+    <div className="chart-card">
+      <div className="chart-card__header">
+        <h3 className="chart-card__title">{title}</h3>
+      </div>
+      <div className="chart-card__body">
+        {children || <div className="chart-card__empty">{emptyMessage || 'No data available'}</div>}
+      </div>
+    </div>
+  )
+}
+
+function RatingBarChart({ distribution }: { distribution: Record<number, number> }) {
+  const maxCount = Math.max(...Object.values(distribution), 1)
+
+  return (
+    <div className="rating-chart">
+      {[5, 4, 3, 2, 1].map((rating) => {
+        const count = distribution[rating] || 0
+        const percentage = (count / maxCount) * 100
+
+        return (
+          <div key={rating} className="rating-chart__row">
+            <div className="rating-chart__stars">
+              {[...Array(5)].map((_, i) => (
+                <StarIcon
+                  key={i}
+                  className={`rating-chart__star ${i < rating ? '' : 'star empty'}`}
+                />
+              ))}
+            </div>
+            <div className="rating-chart__bar-container">
+              <div className="rating-chart__bar" style={{ width: `${percentage}%` }} />
+            </div>
+            <div className="rating-chart__count">{count}</div>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+function formatReadingTime(ms: number): string {
+  if (!ms) return '0h 0m'
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  return `${hours}h ${minutes}m`
+}
+
 export function AnalyticsPage() {
   const [bookStats, setBookStats] = useState<{
     booksByStatus: Record<string, number>
     genreCount: Record<string, number>
+    tagCount: Record<string, number>
+    ratingDistribution: Record<number, number>
     averageRating: number
     totalBooks: number
   } | null>(null)
   const [readingStats, setReadingStats] = useState<{
     totalSessions: number
     totalPages: number
+    totalTime: number
     byMonth: Record<string, { sessions: number; pages: number }>
     averagePagesPerSession: number
+    readingSpeed: number
   } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const loadStats = async () => {
-      const [bookData, sessionData] = await Promise.all([
-        bookRepository.getStatistics(),
-        sessionRepository.getStatistics()
-      ])
-      setBookStats(bookData)
-      setReadingStats(sessionData)
-      setIsLoading(false)
+      try {
+        console.log('Loading analytics data...')
+        const [bookData, sessionData] = await Promise.all([
+          bookRepository.getStatistics(),
+          sessionRepository.getStatistics()
+        ])
+        console.log('Book stats:', bookData)
+        console.log('Session stats:', sessionData)
+        setBookStats(bookData)
+        setReadingStats(sessionData)
+        setIsLoading(false)
+      } catch (err) {
+        console.error('Failed to load analytics:', err)
+        setError(err instanceof Error ? err.message : 'Failed to load analytics')
+        setIsLoading(false)
+      }
     }
     loadStats()
   }, [])
 
+  // Top 10 tags - must be called before any early returns
+  const topTags = useMemo(() => {
+    if (!bookStats?.tagCount) return []
+    return Object.entries(bookStats.tagCount)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 10)
+  }, [bookStats?.tagCount])
+
   if (isLoading) {
-    return <div style={{ padding: 20 }}>Loading analytics...</div>
+    return (
+      <div className="analytics-page">
+        <div className="analytics-loading">Loading analytics...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="analytics-page">
+        <div className="analytics-empty">
+          <div className="analytics-empty__title">Error loading analytics</div>
+          <p className="analytics-empty__description">{error}</p>
+        </div>
+      </div>
+    )
   }
 
   if (!bookStats || !readingStats) {
-    return <div style={{ padding: 20 }}>Failed to load analytics</div>
+    return (
+      <div className="analytics-page">
+        <div className="analytics-empty">
+          <div className="analytics-empty__title">No data available</div>
+          <p className="analytics-empty__description">Start adding books and logging reading sessions to see your analytics.</p>
+        </div>
+      </div>
+    )
   }
 
   const statusLabels: Record<string, string> = {
@@ -71,16 +227,21 @@ export function AnalyticsPage() {
     read: 'Read'
   }
 
+  const hasBooks = bookStats.totalBooks > 0
+  const hasRatings = Object.values(bookStats.ratingDistribution).some(v => v > 0)
+  const hasGenres = Object.keys(bookStats.genreCount).length > 0
+  const hasMonths = Object.keys(readingStats.byMonth).length > 0
+
   // Status distribution chart
   const statusChartData = {
-    labels: Object.keys(bookStats.booksByStatus)
-      .filter(k => k !== 'total')
-      .map(k => statusLabels[k] || k),
+    labels: Object.entries(bookStats.booksByStatus)
+      .filter(([k]) => k !== 'total' && k !== 'totalBooks')
+      .map(([k, _]) => statusLabels[k] || k),
     datasets: [{
       data: Object.entries(bookStats.booksByStatus)
-        .filter(([k]) => k !== 'total')
+        .filter(([k]) => k !== 'total' && k !== 'totalBooks')
         .map(([_, v]) => v),
-      backgroundColor: ['#64748b', '#3b82f6', '#22c55e'],
+      backgroundColor: ['#a855f7', '#f97316', '#22c55e'],
       borderWidth: 0
     }]
   }
@@ -113,75 +274,100 @@ export function AnalyticsPage() {
   }
 
   return (
-    <div className="analytics-page" style={{ padding: 16 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Analytics</h1>
+    <div className="analytics-page">
+      <header className="analytics-page__header">
+        <h1 className="analytics-page__title">Reading Analytics</h1>
+        <p className="analytics-page__subtitle">Track your reading journey</p>
+      </header>
 
-      {/* Overview Stats */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
-        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: 'var(--app-primary)' }}>{bookStats.totalBooks}</div>
-          <div style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6 }}>Total Books</div>
-        </div>
-        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#22c55e' }}>{bookStats.booksByStatus.read}</div>
-          <div style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6 }}>Read</div>
-        </div>
-        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 32, fontWeight: 700, color: '#3b82f6' }}>{readingStats.totalPages}</div>
-          <div style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6 }}>Pages Read</div>
-        </div>
+      {/* Overview Stats - 4 cards */}
+      <div className="stats-grid">
+        <StatCard
+          icon={<BookIcon className="stat-card__icon" />}
+          value={bookStats.totalBooks}
+          label="Total Books"
+          colorClass="stat-card--total"
+        />
+        <StatCard
+          icon={<CheckIcon className="stat-card__icon" />}
+          value={bookStats.booksByStatus.read || 0}
+          label="Books Read"
+          colorClass="stat-card--read"
+        />
+        <StatCard
+          icon={<ReadingIcon className="stat-card__icon" />}
+          value={bookStats.booksByStatus.currentlyReading || 0}
+          label="Currently Reading"
+          colorClass="stat-card--reading"
+        />
+        <StatCard
+          icon={<TrendingUpIcon className="stat-card__icon" />}
+          value={bookStats.booksByStatus.wantToRead || 0}
+          label="Want to Read"
+          colorClass="stat-card--want"
+        />
       </div>
 
-      {/* Charts Row 1 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 }}>
-        <div className="card" style={{ padding: 16 }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>Reading Status</h3>
-          <div style={{ maxWidth: 200, margin: '0 auto' }}>
-            <Doughnut data={statusChartData} />
-          </div>
-          <div style={{ marginTop: 12, fontSize: 14, textAlign: 'center' }}>
-            {bookStats.averageRating > 0 && `Average Rating: ${bookStats.averageRating.toFixed(1)}/5`}
-          </div>
-        </div>
-
-        <div className="card" style={{ padding: 16 }}>
-          <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>Books by Genre</h3>
-          {Object.keys(bookStats.genreCount).length > 0 ? (
-            <Bar data={genreChartData} />
-          ) : (
-            <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-text)', opacity: 0.6 }}>
-              No genre data yet
-            </div>
-          )}
-        </div>
+      {/* Reading Progress - 3 cards */}
+      <div className="progress-grid">
+        <ProgressCard
+          value={readingStats.totalPages}
+          label="Pages Read"
+          unit="pages"
+        />
+        <ProgressCard
+          value={formatReadingTime(readingStats.totalTime)}
+          label="Reading Time"
+        />
+        <ProgressCard
+          value={readingStats.readingSpeed.toFixed(1)}
+          label="Avg Speed"
+          unit="p/h"
+        />
       </div>
 
-      {/* Reading Progress Chart */}
-      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-        <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>Pages Read Over Time</h3>
-        {months.length > 0 ? (
-          <Line data={readingChartData} />
-        ) : (
-          <div style={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-text)', opacity: 0.6 }}>
-            Start logging reading sessions to see progress
-          </div>
-        )}
-      </div>
+      {/* Insights Section - Charts */}
+      <section className="charts-section">
+        <div className="charts-section__grid">
+          {/* Rating Distribution */}
+          <ChartCard title="Rating Distribution" emptyMessage="No rated books yet">
+            {hasRatings ? <RatingBarChart distribution={bookStats.ratingDistribution} /> : null}
+          </ChartCard>
 
-      {/* Reading Stats */}
-      <div className="card" style={{ padding: 16 }}>
-        <h3 style={{ margin: '0 0 16px 0', fontSize: 16, fontWeight: 600 }}>Reading Statistics</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
-          <div>
-            <div style={{ fontSize: 24, fontWeight: 600 }}>{readingStats.totalSessions}</div>
-            <div style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6 }}>Total Sessions</div>
+          {/* Reading Status */}
+          <ChartCard title="Reading Status" emptyMessage="No books yet">
+            {hasBooks ? <Doughnut data={statusChartData} /> : null}
+          </ChartCard>
+
+          {/* Books by Genre */}
+          <ChartCard title="Books by Genre" emptyMessage="No genre data yet">
+            {hasGenres ? <Bar data={genreChartData} /> : null}
+          </ChartCard>
+
+          {/* Pages Over Time */}
+          <ChartCard title="Pages Over Time" emptyMessage="Start logging sessions to see progress">
+            {hasMonths ? <Line data={readingChartData} /> : null}
+          </ChartCard>
+        </div>
+      </section>
+
+      {/* Tag Analytics */}
+      {topTags.length > 0 && (
+        <div className="tag-analytics">
+          <div className="tag-analytics__header">
+            <TagsIcon className="tag-analytics__icon" />
+            <h2 className="tag-analytics__title">Top Tags</h2>
           </div>
-          <div>
-            <div style={{ fontSize: 24, fontWeight: 600 }}>{readingStats.averagePagesPerSession.toFixed(1)}</div>
-            <div style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6 }}>Avg Pages/Session</div>
+          <div className="tag-analytics__list">
+            {topTags.map(([tag, count]) => (
+              <span key={tag} className="tag-analytics__tag">
+                {tag}
+                <span className="tag-analytics__count">{count}</span>
+              </span>
+            ))}
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

@@ -82,12 +82,17 @@ export const sessionRepository = {
       return sum
     }, 0)
 
+    // Calculate reading speed in pages per hour
+    const totalHours = totalTime / (1000 * 60 * 60)
+    const readingSpeed = totalHours > 0 ? totalPages / totalHours : 0
+
     return {
       totalSessions,
       totalPages,
       totalTime,
       byMonth,
-      averagePagesPerSession: totalSessions > 0 ? totalPages / totalSessions : 0
+      averagePagesPerSession: totalSessions > 0 ? totalPages / totalSessions : 0,
+      readingSpeed
     }
   }
 }

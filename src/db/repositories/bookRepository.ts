@@ -164,6 +164,8 @@ export const bookRepository = {
     }
 
     const genreCount: Record<string, number> = {}
+    const tagCount: Record<string, number> = {}
+    const ratingDistribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
     let totalRating = 0
     let ratedBooks = 0
 
@@ -174,7 +176,11 @@ export const bookRepository = {
       if (book.genre) {
         genreCount[book.genre] = (genreCount[book.genre] || 0) + 1
       }
-      if (book.rating) {
+      book.tags.forEach((tag) => {
+        tagCount[tag] = (tagCount[tag] || 0) + 1
+      })
+      if (book.rating && book.rating >= 1 && book.rating <= 5) {
+        ratingDistribution[book.rating]++
         totalRating += book.rating
         ratedBooks++
       }
@@ -183,6 +189,8 @@ export const bookRepository = {
     return {
       booksByStatus,
       genreCount,
+      tagCount,
+      ratingDistribution,
       averageRating: ratedBooks > 0 ? totalRating / ratedBooks : 0,
       totalBooks: books.length
     }
