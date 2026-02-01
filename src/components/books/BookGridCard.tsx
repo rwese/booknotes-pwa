@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import type { Book } from '../../types'
 
 interface BookGridCardProps {
@@ -8,15 +8,17 @@ interface BookGridCardProps {
 
 export function BookGridCard({ book, onClick }: BookGridCardProps) {
   const coverData = book.coverThumbnailData || book.coverImageData
-  const coverUrl = useMemo(() => {
-    return coverData ? URL.createObjectURL(coverData) : null
-  }, [coverData])
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
 
   useEffect(() => {
-    return () => {
-      if (coverUrl) URL.revokeObjectURL(coverUrl)
+    if (coverData) {
+      const url = URL.createObjectURL(coverData)
+      setCoverUrl(url)
+      return () => URL.revokeObjectURL(url)
+    } else {
+      setCoverUrl(null)
     }
-  }, [coverUrl])
+  }, [coverData])
 
   const statusLabel: Record<string, string> = {
     wantToRead: 'Want',
