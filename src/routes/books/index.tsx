@@ -5,6 +5,7 @@ import { useViewPreference } from '../../hooks/useViewPreference'
 import { useHashParams } from '../../hooks/useHashParams'
 import { ViewToggle } from '../../components/ui/ViewToggle'
 import { FilterToggle } from '../../components/ui/FilterToggle'
+import { SortToggle, type SortOption } from '../../components/ui/SortToggle'
 import { BookGridCard } from '../../components/books/BookGridCard'
 import type { Book } from '../../types'
 
@@ -15,6 +16,24 @@ export function BooksIndex() {
   const [viewMode, setViewMode] = useViewPreference('list')
   const [showFilters, setShowFilters] = useState(false)
   const { params, setParams, clearParams } = useHashParams()
+  const [sortBy, setSortBy] = useState<SortOption>('title')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+
+  // Initialize sort params from hash
+  useEffect(() => {
+    if (params.sortBy) {
+      setSortBy((params.sortBy as SortOption) || 'title')
+    }
+    if (params.sortOrder) {
+      setSortOrder((params.sortOrder as 'asc' | 'desc') || 'asc')
+    }
+  }, [params.sortBy, params.sortOrder])
+
+  const handleSortChange = useCallback((newSortBy: SortOption, newSortOrder: 'asc' | 'desc') => {
+    setSortBy(newSortBy)
+    setSortOrder(newSortOrder)
+    setParams({ sortBy: newSortBy, sortOrder: newSortOrder })
+  }, [setParams])
 
   // Track cover blob URLs for cleanup
   const coverUrlsRef = useRef<Map<string, string>>(new Map())
@@ -118,6 +137,37 @@ export function BooksIndex() {
     return result
   }, [books, statusFilter, genreFilter, tagFilter, ratingFilter, globalFilter])
 
+  // Apply sorting to filtered books
+  const sortedBooks = useMemo(() => {
+    const booksToSort = [...filteredBooks]
+    booksToSort.sort((a, b) => {
+      let comparison = 0
+
+      switch (sortBy) {
+        case 'title':
+          comparison = a.title.localeCompare(b.title)
+          break
+        case 'author':
+          comparison = a.author.localeCompare(b.author)
+          break
+        case 'createdAt':
+          comparison = new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          break
+        case 'updatedAt':
+          comparison = new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime()
+          break
+        case 'rating':
+          comparison = (a.rating || 0) - (b.rating || 0)
+          break
+        default:
+          comparison = 0
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison
+    })
+    return booksToSort
+  }, [filteredBooks, sortBy, sortOrder])
+
   const handleBookClick = (book: Book) => {
     navigate({ to: '/books/$bookId', params: { bookId: book.id } })
   }
@@ -166,6 +216,11 @@ export function BooksIndex() {
           className="form-input filter-bar__search"
         />
         <div className="filter-bar__controls">
+          <SortToggle
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+          />
           <FilterToggle
             isOpen={showFilters}
             onToggle={() => setShowFilters(!showFilters)}
@@ -223,6 +278,9 @@ export function BooksIndex() {
               clearParams()
               setGlobalFilter('')
               setShowFilters(false)
+              // Reset sort to defaults
+              setSortBy('title')
+              setSortOrder('asc')
             }}
             className="filter-bar__clear"
             aria-label="Clear all filters"
@@ -245,7 +303,7 @@ export function BooksIndex() {
         </div>
       ) : viewMode === 'grid' ? (
         <div className="book-grid">
-          {filteredBooks.map((book) => (
+          {sortedBooks.map((book) => (
             <BookGridCard
               key={book.id}
               book={book}
@@ -255,7 +313,7 @@ export function BooksIndex() {
         </div>
       ) : (
         <div className="book-list">
-          {filteredBooks.map((book) => {
+          {sortedBooks.map((book) => {
             const coverUrl = getCoverUrl(book)
             const statusClass = book.readingStatus ? {
               wantToRead: 'badge badge--status-want',
