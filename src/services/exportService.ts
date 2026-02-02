@@ -200,32 +200,46 @@ export class ExportService {
     const arrayBuffer = await file.arrayBuffer()
     const zip = await JSZip.loadAsync(arrayBuffer)
 
+    // Find the root prefix if files are nested in a folder (e.g., "booknotes_export_UUID/")
+    let rootPrefix = ''
+    zip.forEach((relativePath) => {
+      if (relativePath.endsWith('metadata.json') && !relativePath.includes('__MACOSX')) {
+        // Extract the folder prefix (everything before metadata.json)
+        rootPrefix = relativePath.replace('metadata.json', '')
+      }
+    })
+
     let data: Record<string, unknown> = {}
 
     // Check if it's the new format with metadata.json
-    if (zip.file('metadata.json')) {
-      const metadataText = await zip.file('metadata.json')!.async('string')
+    const metadataFile = zip.file(rootPrefix + 'metadata.json')
+    if (metadataFile) {
+      const metadataText = await metadataFile.async('string')
       const metadata = JSON.parse(metadataText)
 
-      // Convert new format to internal format
-      data = await this.convertMetadataToInternalFormat(metadata, zip)
-    } else if (zip.file('books')) {
+      // Convert new format to internal format, passing the root prefix for cover paths
+      data = await this.convertMetadataToInternalFormat(metadata, zip, rootPrefix)
+    } else if (zip.file(rootPrefix + 'books') || zip.file('books')) {
       // Check for old format
-      const booksText = await zip.file('books')!.async('string')
+      const booksFile = zip.file(rootPrefix + 'books') || zip.file('books')
+      const booksText = await booksFile!.async('string')
       data.books = JSON.parse(booksText)
 
-      if (zip.file('notes')) {
-        const notesText = await zip.file('notes')!.async('string')
+      const notesFile = zip.file(rootPrefix + 'notes') || zip.file('notes')
+      if (notesFile) {
+        const notesText = await notesFile.async('string')
         data.notes = JSON.parse(notesText)
       }
 
-      if (zip.file('categories')) {
-        const categoriesText = await zip.file('categories')!.async('string')
+      const categoriesFile = zip.file(rootPrefix + 'categories') || zip.file('categories')
+      if (categoriesFile) {
+        const categoriesText = await categoriesFile.async('string')
         data.categories = JSON.parse(categoriesText)
       }
 
-      if (zip.file('sessions')) {
-        const sessionsText = await zip.file('sessions')!.async('string')
+      const sessionsFile = zip.file(rootPrefix + 'sessions') || zip.file('sessions')
+      if (sessionsFile) {
+        const sessionsText = await sessionsFile.async('string')
         data.sessions = JSON.parse(sessionsText)
       }
     }
@@ -234,7 +248,7 @@ export class ExportService {
     return result
   }
 
-  private async convertMetadataToInternalFormat(metadata: ExportMetadata, zip: JSZip): Promise<Record<string, unknown>> {
+  private async convertMetadataToInternalFormat(metadata: ExportMetadata, zip: JSZip, rootPrefix: string = ''): Promise<Record<string, unknown>> {
     const result: Record<string, unknown> = { books: [] }
 
     // Convert export books to internal format
@@ -243,8 +257,27 @@ export class ExportService {
     // Check if this is native app format (uses coverKey as filename, not coverMapping)
     const isNativeFormat = !metadata.coverMapping && metadata.books.some(b => b.coverKey)
 
-    // Determine cover folder name
-    const coverFolder = zip.file('cover_images/') ? 'cover_images' : 'covers'
+    // Determine cover folder name (check both with and without root prefix)
+    let coverFolder = 'covers'
+    if (zip.file(rootPrefix + 'cover_images/') || zip.folder(rootPrefix + 'cover_images')) {
+      coverFolder = 'cover_images'
+    } else if (zip.file(rootPrefix + 'covers/') || zip.folder(rootPrefix + 'covers')) {
+      coverFolder = 'covers'
+    } else {
+      // Check by looking for any cover file
+      let foundCoverFolder = ''
+      zip.forEach((path) => {
+        if (!foundCoverFolder && path.includes('_cover.') && !path.includes('__MACOSX')) {
+          const match = path.match(/cover_images\/|covers\//)
+          if (match) {
+            foundCoverFolder = match[0].replace('/', '')
+          }
+        }
+      })
+      if (foundCoverFolder) {
+        coverFolder = foundCoverFolder
+      }
+    }
 
     for (const exportBook of metadata.books) {
       const book: Record<string, unknown> = {
@@ -307,11 +340,17 @@ export class ExportService {
         }
 
         if (coverFilename) {
-          // Try both cover_images/ (native) and covers/ (PWA) folders
-          let coverFile = zip.file(`${coverFolder}/${coverFilename}`)
-          if (!coverFile) {
-            // Try the other folder
-            coverFile = zip.file(`${coverFolder === 'cover_images' ? 'covers' : 'cover_images'}/${coverFilename}`)
+          // Try with root prefix first, then without, and try both folder names
+          const coverPaths = [
+            `${rootPrefix}${coverFolder}/${coverFilename}`,
+            `${rootPrefix}${coverFolder === 'cover_images' ? 'covers' : 'cover_images'}/${coverFilename}`,
+            `${coverFolder}/${coverFilename}`,
+            `${coverFolder === 'cover_images' ? 'covers' : 'cover_images'}/${coverFilename}`
+          ]
+          let coverFile = null
+          for (const path of coverPaths) {
+            coverFile = zip.file(path)
+            if (coverFile) break
           }
 
           if (coverFile) {
@@ -335,21 +374,24 @@ export class ExportService {
 
     result.books = books
 
-    // Handle notes
-    if (zip.file('notes.json')) {
-      const notesText = await zip.file('notes.json')!.async('string')
+    // Handle notes (try with prefix first, then without)
+    const notesFile = zip.file(rootPrefix + 'notes.json') || zip.file('notes.json')
+    if (notesFile) {
+      const notesText = await notesFile.async('string')
       result.notes = JSON.parse(notesText)
     }
 
     // Handle categories
-    if (zip.file('categories.json')) {
-      const categoriesText = await zip.file('categories.json')!.async('string')
+    const categoriesFile = zip.file(rootPrefix + 'categories.json') || zip.file('categories.json')
+    if (categoriesFile) {
+      const categoriesText = await categoriesFile.async('string')
       result.categories = JSON.parse(categoriesText)
     }
 
     // Handle sessions
-    if (zip.file('sessions.json')) {
-      const sessionsText = await zip.file('sessions.json')!.async('string')
+    const sessionsFile = zip.file(rootPrefix + 'sessions.json') || zip.file('sessions.json')
+    if (sessionsFile) {
+      const sessionsText = await sessionsFile.async('string')
       result.sessions = JSON.parse(sessionsText)
     }
 

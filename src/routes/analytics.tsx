@@ -13,6 +13,7 @@ import {
   Legend,
   Filler
 } from 'chart.js'
+import type { ChartEvent, ActiveElement } from 'chart.js'
 import { Bar, Doughnut, Line } from 'react-chartjs-2'
 import { bookRepository } from '../db/repositories/bookRepository'
 import { sessionRepository } from '../db/repositories/sessionRepository'
@@ -275,7 +276,7 @@ export function AnalyticsPage() {
   const genreChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
-    onClick: (_: Event, elements: Array<{ index: number }>) => {
+    onClick: (_: ChartEvent, elements: ActiveElement[]) => {
       if (elements.length > 0) {
         const index = elements[0].index
         const genres = Object.keys(bookStats.genreCount)
