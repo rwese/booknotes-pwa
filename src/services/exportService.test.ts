@@ -49,7 +49,6 @@ describe('ExportService', () => {
         title: 'Test Book',
         author: 'Test Author',
         tags: [],
-        categoryIds: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         coverImageBase64: coverBase64
@@ -89,7 +88,6 @@ describe('ExportService', () => {
           title: 'Test Book',
           author: 'Test Author',
           tags: [],
-          categoryIds: [],
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           coverKey: 'test-book',

@@ -18,6 +18,14 @@ export function useBook(id: string) {
   })
 }
 
+export function useBookBySlug(slug: string) {
+  return useQuery({
+    queryKey: ['book', 'slug', slug],
+    queryFn: () => bookRepository.getBySlug(slug),
+    enabled: !!slug
+  })
+}
+
 export function useAllBooks() {
   return useQuery({
     queryKey: ['books', 'all'],
@@ -72,7 +80,7 @@ export function useCreateBook() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (book: Omit<Book, 'id' | 'createdAt' | 'updatedAt'>) =>
+    mutationFn: (book: Omit<Book, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) =>
       bookRepository.create(book),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['books'] })

@@ -169,7 +169,7 @@ export function BooksIndex() {
   }, [filteredBooks, sortBy, sortOrder])
 
   const handleBookClick = (book: Book) => {
-    navigate({ to: '/books/$bookId', params: { bookId: book.id } })
+    navigate({ to: '/books/$bookSlug', params: { bookSlug: book.slug || book.id } })
   }
 
   const handleAddBook = () => {

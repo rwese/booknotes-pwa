@@ -1,21 +1,17 @@
 import Dexie, { type Table } from 'dexie'
-import type { Book, Note, BookCategory, ReadingSession } from '../types'
+import type { Book, Note } from '../types'
 
 export class BookNotesDatabase extends Dexie {
   books!: Table<Book>
   notes!: Table<Note>
-  categories!: Table<BookCategory>
-  readingSessions!: Table<ReadingSession>
 
   constructor() {
     super('BookNotesDB')
 
     // Define schema
     this.version(1).stores({
-      books: 'id, title, author, isbn, genre, readingStatus, rating, createdAt, updatedAt, *categoryIds, *readingSessionIds',
-      notes: 'id, bookId, createdAt',
-      categories: 'id, name, *bookIds, parentId',
-      readingSessions: 'id, bookId, startDate, endDate'
+      books: 'id, slug, title, author, isbn, genre, readingStatus, rating, createdAt, updatedAt',
+      notes: 'id, bookId, createdAt'
     })
   }
 }
@@ -50,24 +46,6 @@ db.notes.hook('updating', (modifications) => {
     ...modifications,
     updatedAt: now
   }
-})
-
-db.categories.hook('creating', (_primKey, obj) => {
-  const now = new Date().toISOString()
-  obj.createdAt = now
-  obj.updatedAt = now
-})
-
-db.categories.hook('updating', (modifications) => {
-  const now = new Date().toISOString()
-  return {
-    ...modifications,
-    updatedAt: now
-  }
-})
-
-db.readingSessions.hook('creating', (_primKey, obj) => {
-  obj.createdAt = new Date().toISOString()
 })
 
 // Helper function to convert Blob to Base64 and back

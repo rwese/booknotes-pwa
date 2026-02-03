@@ -3,7 +3,6 @@ import App from './App'
 import { BookForm } from './components/books/BookForm'
 import { BookDetail } from './components/books/BookDetail'
 import { ISBNScanner } from './components/scanner/ISBNScanner'
-import { CategoriesPage } from './routes/categories'
 import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { BooksIndex } from './routes/books'
@@ -35,15 +34,17 @@ const booksIndexRoute = createRoute({
   component: () => <BooksIndex />
 })
 
+// Book detail route - accepts both slug and UUID
 const bookDetailRoute = createRoute({
   getParentRoute: () => booksRoute,
-  path: '$bookId',
+  path: '$bookSlug',
   component: () => <BookDetail />
 })
 
+// Book edit route - accepts both slug and UUID
 const bookEditRoute = createRoute({
   getParentRoute: () => booksRoute,
-  path: '$bookId/edit',
+  path: '$bookSlug/edit',
   component: () => <BookForm mode="edit" />
 })
 
@@ -58,13 +59,6 @@ const analyticsRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: 'analytics',
   component: () => <AnalyticsPage />
-})
-
-// Categories route
-const categoriesRoute = createRoute({
-  getParentRoute: () => RootRoute,
-  path: 'categories',
-  component: () => <CategoriesPage />
 })
 
 // Scanner route
@@ -85,7 +79,6 @@ const routeTree = RootRoute.addChildren([
   IndexRoute,
   booksRoute.addChildren([booksIndexRoute, bookDetailRoute, bookEditRoute, bookNewRoute]),
   analyticsRoute,
-  categoriesRoute,
   scannerRoute,
   settingsRoute
 ])

@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
-import { useBook, useCreateBook, useUpdateBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
+import { useBookBySlug, useCreateBook, useUpdateBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
 import { isbnService } from '../../services/isbnService'
 import { coverImageService } from '../../services/coverImageService'
+import { bookRepository } from '../../db/repositories/bookRepository'
+import { isUUID, generateBookSlug } from '../../utils/slug'
 import { AutocompleteInput } from '../ui/AutocompleteInput'
 import { TagsInput } from '../ui/TagsInput'
 import type { BookFormData, ReadingStatus } from '../../types'
@@ -14,11 +16,42 @@ interface BookFormProps {
 const readingStatuses: ReadingStatus[] = ['wantToRead', 'currentlyReading', 'read']
 
 export function BookForm({ mode }: BookFormProps) {
-  const search = useSearch({ from: mode === 'edit' ? '/books/$bookId/edit' : '/books/new' }) as { isbn?: string }
-  const params = useParams({ from: mode === 'edit' ? '/books/$bookId/edit' : '/books/new' }) as { bookId?: string }
+  const search = useSearch({ from: mode === 'edit' ? '/books/$bookSlug/edit' : '/books/new' }) as { isbn?: string }
+  const params = useParams({ from: mode === 'edit' ? '/books/$bookSlug/edit' : '/books/new' }) as { bookSlug?: string }
   const navigate = useNavigate()
-  const bookId = mode === 'edit' ? params.bookId : undefined
-  const { data: existingBook } = useBook(mode === 'edit' && bookId ? bookId : '')
+  const bookSlug = mode === 'edit' ? params.bookSlug : undefined
+
+  // Resolve book ID from slug (handles both UUID legacy URLs and new slug URLs)
+  const [resolvedBookId, setResolvedBookId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    const resolveBook = async () => {
+      if (!bookSlug || mode !== 'edit') return
+
+      if (isUUID(bookSlug)) {
+        // Legacy UUID URL
+        const book = await bookRepository.getById(bookSlug)
+        if (book && mounted) {
+          setResolvedBookId(book.id)
+        }
+      } else {
+        // Slug URL - look up by slug
+        const book = await bookRepository.getBySlug(bookSlug)
+        if (book && mounted) {
+          setResolvedBookId(book.id)
+        }
+      }
+    }
+
+    resolveBook()
+
+    return () => { mounted = false }
+  }, [bookSlug, mode])
+
+  const bookId = resolvedBookId || undefined
+  const { data: existingBook } = useBookBySlug(bookSlug || '')
   const createBook = useCreateBook()
   const updateBook = useUpdateBook()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -45,13 +78,12 @@ export function BookForm({ mode }: BookFormProps) {
     readingStatus: undefined,
     rating: undefined,
     tags: [],
-    categoryIds: [],
     purchaseDate: '',
     purchasePrice: undefined,
     customNotes: ''
   })
 
-  const [croppedCover, setCroppedCover] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
+  const [coverImage, setCoverImage] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
   const [isLookingUpISBN, setIsLookingUpISBN] = useState(false)
   const [isbnLookupError, setIsbnLookupError] = useState<string | null>(null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
@@ -75,7 +107,7 @@ export function BookForm({ mode }: BookFormProps) {
       formData.tags.join(',') !== initialFormData.tags.join(',') ||
       formData.customNotes !== initialFormData.customNotes
 
-    const coverChanged = !!(croppedCover && !initialCover)
+    const coverChanged = !!(coverImage && !initialCover)
 
     return dataChanged || coverChanged
   })()
@@ -91,13 +123,13 @@ export function BookForm({ mode }: BookFormProps) {
   }
 
   useEffect(() => {
-    if (croppedCover) {
-      const url = URL.createObjectURL(croppedCover.thumbnail)
+    if (coverImage) {
+      const url = URL.createObjectURL(coverImage.thumbnail)
       setCoverUrl(url)
       return () => URL.revokeObjectURL(url)
     }
     return undefined
-  }, [croppedCover])
+  }, [coverImage])
 
   const [isbnProcessed, setIsbnProcessed] = useState(false)
   useEffect(() => {
@@ -128,7 +160,6 @@ export function BookForm({ mode }: BookFormProps) {
         readingStatus: existingBook.readingStatus,
         rating: existingBook.rating,
         tags: existingBook.tags,
-        categoryIds: existingBook.categoryIds,
         purchaseDate: existingBook.purchaseDate || '',
         purchasePrice: existingBook.purchasePrice,
         customNotes: existingBook.customNotes || ''
@@ -140,7 +171,7 @@ export function BookForm({ mode }: BookFormProps) {
           image: existingBook.coverImageData,
           thumbnail: existingBook.coverThumbnailData || existingBook.coverImageData
         }
-        setCroppedCover(coverData)
+        setCoverImage(coverData)
         setInitialCover(coverData)
       }
     }
@@ -170,7 +201,7 @@ export function BookForm({ mode }: BookFormProps) {
       }))
 
       if (result.coverImageData) {
-        setCroppedCover({
+        setCoverImage({
           image: result.coverImageData,
           thumbnail: result.coverThumbnailData || result.coverImageData
         })
@@ -187,7 +218,7 @@ export function BookForm({ mode }: BookFormProps) {
     if (!file) return
 
     const processed = await coverImageService.processImage(file)
-    setCroppedCover({ image: processed.fullImage, thumbnail: processed.thumbnail })
+    setCoverImage({ image: processed.fullImage, thumbnail: processed.thumbnail })
   }
 
   const handleCoverClick = () => {
@@ -200,20 +231,35 @@ export function BookForm({ mode }: BookFormProps) {
     const bookData = {
       ...formData,
       authorSortName: formData.author,
-      coverImageData: croppedCover?.image || (mode === 'edit' ? existingBook?.coverImageData : undefined),
-      coverThumbnailData: croppedCover?.thumbnail || (mode === 'edit' ? existingBook?.coverThumbnailData : undefined),
+      coverImageData: coverImage?.image || (mode === 'edit' ? existingBook?.coverImageData : undefined),
+      coverThumbnailData: coverImage?.thumbnail || (mode === 'edit' ? existingBook?.coverThumbnailData : undefined),
       tags: formData.tags.filter(Boolean),
-      categoryIds: formData.categoryIds.filter(Boolean),
       readingSessionIds: [] as string[]
     }
 
     try {
       if (mode === 'edit' && bookId) {
         await updateBook.mutateAsync({ id: bookId, updates: bookData })
-        navigate({ to: '/books/$bookId', params: { bookId } })
+
+        // Update slug if title or ISBN changed
+        const titleChanged = existingBook && formData.title !== existingBook.title
+        const isbnChanged = existingBook && formData.isbn !== existingBook.isbn
+        if (titleChanged || isbnChanged) {
+          await bookRepository.updateSlug(bookId, formData.title, formData.isbn)
+        }
+
+        // Navigate to the book's slug URL (generate new slug for redirect)
+        const newSlug = generateBookSlug(formData.title, formData.isbn)
+        navigate({ to: '/books/$bookSlug', params: { bookSlug: newSlug } })
       } else {
         const newBookId = await createBook.mutateAsync(bookData)
-        navigate({ to: '/books/$bookId', params: { bookId: newBookId } })
+        // Get the created book to get its slug
+        const newBook = await bookRepository.getById(newBookId)
+        if (newBook) {
+          navigate({ to: '/books/$bookSlug', params: { bookSlug: newBook.slug } })
+        } else {
+          navigate({ to: '/books' })
+        }
       }
     } catch (error) {
       console.error('Failed to save book:', error)

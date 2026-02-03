@@ -26,15 +26,6 @@ function TabBar() {
         </svg>
         <span>Analytics</span>
       </a>
-      <a href="/categories" className={`tab-bar-item ${isActive('/categories') ? 'active' : ''}`}>
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="7" height="7" />
-          <rect x="14" y="3" width="7" height="7" />
-          <rect x="14" y="14" width="7" height="7" />
-          <rect x="3" y="14" width="7" height="7" />
-        </svg>
-        <span>Categories</span>
-      </a>
       <a href="/scanner" className={`tab-bar-item ${isActive('/scanner') ? 'active' : ''}`}>
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M3 7V5a2 2 0 0 1 2-2h2" />

@@ -28,12 +28,6 @@ test.describe('BookNotes PWA', () => {
     await expect(page.locator('h1')).toContainText('Analytics')
   })
 
-  test('categories page loads', async ({ page }) => {
-    await page.goto(`${BASE_URL}/categories`)
-    await page.waitForLoadState('networkidle')
-    await expect(page.locator('h1')).toContainText('Categories')
-  })
-
   test('scanner page loads', async ({ page }) => {
     await page.goto(`${BASE_URL}/scanner`)
     await page.waitForLoadState('networkidle')

@@ -1,6 +1,7 @@
 import { db, generateId } from '../schema'
 import type { Book, BookFilters, ReadingStatus } from '../../types'
 import { useLiveQuery } from 'dexie-react-hooks'
+import { generateBookSlug } from '../../utils/slug'
 
 // Book repository
 export const bookRepository = {
@@ -12,21 +13,35 @@ export const bookRepository = {
     return db.books.get(id)
   },
 
+  async getBySlug(slug: string): Promise<Book | undefined> {
+    return db.books.where('slug').equals(slug).first()
+  },
+
   async getByISBN(isbn: string): Promise<Book | undefined> {
     return db.books
       .filter((book) => book.isbn === isbn || book.isbn10 === isbn || book.isbn13 === isbn)
       .first()
   },
 
-  async create(book: Omit<Book, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {
+  async create(book: Omit<Book, 'id' | 'slug' | 'createdAt' | 'updatedAt'>): Promise<string> {
     const id = generateId()
+    const slug = generateBookSlug(book.title, book.isbn)
     await db.books.add({
       ...book,
       id,
+      slug,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     })
     return id
+  },
+
+  async updateSlug(id: string, title: string, isbn?: string): Promise<void> {
+    const slug = generateBookSlug(title, isbn)
+    await db.books.update(id, {
+      slug,
+      updatedAt: new Date().toISOString()
+    })
   },
 
   async update(id: string, updates: Partial<Book>): Promise<void> {
@@ -41,22 +56,6 @@ export const bookRepository = {
     const notes = await db.notes.where('bookId').equals(id).toArray()
     for (const note of notes) {
       await db.notes.delete(note.id)
-    }
-
-    // Delete related reading sessions
-    const sessions = await db.readingSessions.where('bookId').equals(id).toArray()
-    for (const session of sessions) {
-      await db.readingSessions.delete(session.id)
-    }
-
-    // Remove book ID from categories
-    const categories = await db.categories.toArray()
-    for (const category of categories) {
-      if (category.bookIds.includes(id)) {
-        await db.categories.update(category.id, {
-          bookIds: category.bookIds.filter((bid) => bid !== id)
-        })
-      }
     }
 
     // Delete the book
@@ -85,11 +84,6 @@ export const bookRepository = {
 
     if (filters.genre) {
       collection = collection.filter((book) => book.genre === filters.genre)
-    }
-
-    if (filters.categoryId) {
-      const categoryId = filters.categoryId
-      collection = collection.filter((book) => book.categoryIds.includes(categoryId))
     }
 
     if (filters.tags && filters.tags.length > 0) {

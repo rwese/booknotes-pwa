@@ -3,10 +3,9 @@ import { saveAs } from 'file-saver'
 import { db, blobToBase64, base64ToBlob } from '../db/schema'
 import { bookRepository } from '../db/repositories/bookRepository'
 import { noteRepository } from '../db/repositories/noteRepository'
-import { categoryRepository } from '../db/repositories/categoryRepository'
-import { sessionRepository } from '../db/repositories/sessionRepository'
 import { coverImageService } from '../services/coverImageService'
-import type { Book, Note, BookCategory, ReadingSession, ExportMetadata, ExportBook } from '../types'
+import { generateBookSlug } from '../utils/slug'
+import type { Book, Note, ExportMetadata, ExportBook } from '../types'
 
 const APP_VERSION = '1.0'
 
@@ -25,8 +24,6 @@ export class ExportService {
   async exportToJSON(): Promise<void> {
     const books = await db.books.toArray()
     const notes = await db.notes.toArray()
-    const categories = await db.categories.toArray()
-    const sessions = await db.readingSessions.toArray()
 
     // Convert books to export format with base64 cover images
     const exportBooks: (ExportBook & { coverImageBase64?: string })[] = []
@@ -41,6 +38,7 @@ export class ExportService {
 
       exportBooks.push({
         id: book.id,
+        slug: book.slug,
         title: book.title,
         author: book.author,
         isbn: book.isbn,
@@ -50,7 +48,6 @@ export class ExportService {
         readingStatus: book.readingStatus,
         rating: book.rating,
         tags: book.tags,
-        categoryIds: book.categoryIds,
         createdAt: book.createdAt,
         updatedAt: book.updatedAt,
         coverKey: book.id,
@@ -63,9 +60,7 @@ export class ExportService {
       appVersion: APP_VERSION,
       exportedAt: new Date().toISOString(),
       books: exportBooks,
-      notes,
-      categories,
-      sessions
+      notes
     }
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
@@ -75,8 +70,6 @@ export class ExportService {
   async exportToZIP(): Promise<void> {
     const books = await db.books.toArray()
     const notes = await db.notes.toArray()
-    const categories = await db.categories.toArray()
-    const sessions = await db.readingSessions.toArray()
 
     const zip = new JSZip()
 
@@ -100,6 +93,7 @@ export class ExportService {
 
         return {
           id: book.id,
+          slug: book.slug,
           title: book.title,
           author: book.author,
           isbn: book.isbn,
@@ -114,7 +108,6 @@ export class ExportService {
           readingStatus: book.readingStatus,
           rating: book.rating,
           tags: book.tags,
-          categoryIds: book.categoryIds,
           createdAt: book.createdAt,
           updatedAt: book.updatedAt,
           coverKey: book.id,
@@ -146,12 +139,6 @@ export class ExportService {
     // Add notes
     const notesWithoutBookData = notes.map(({ bookId, ...rest }) => rest)
     zip.file('notes.json', JSON.stringify(notesWithoutBookData, null, 2))
-
-    // Add categories
-    zip.file('categories.json', JSON.stringify(categories, null, 2))
-
-    // Add reading sessions
-    zip.file('sessions.json', JSON.stringify(sessions, null, 2))
 
     const content = await zip.generateAsync({ type: 'blob' })
     saveAs(content, `booknotes-export-${new Date().toISOString().split('T')[0]}.zip`)
@@ -236,12 +223,6 @@ export class ExportService {
         const categoriesText = await categoriesFile.async('string')
         data.categories = JSON.parse(categoriesText)
       }
-
-      const sessionsFile = zip.file(rootPrefix + 'sessions') || zip.file('sessions')
-      if (sessionsFile) {
-        const sessionsText = await sessionsFile.async('string')
-        data.sessions = JSON.parse(sessionsText)
-      }
     }
 
     const result = await this.importData(data, strategy)
@@ -280,16 +261,18 @@ export class ExportService {
     }
 
     for (const exportBook of metadata.books) {
+      // Generate slug if missing (for legacy imports)
+      const slug = exportBook.slug || generateBookSlug(exportBook.title, exportBook.isbn)
+
       const book: Record<string, unknown> = {
         id: exportBook.id,
+        slug,
         title: exportBook.title,
         author: exportBook.author,
         authorSortName: exportBook.author,
         createdAt: exportBook.createdAt,
         updatedAt: exportBook.updatedAt,
-        tags: exportBook.tags || [],
-        categoryIds: exportBook.categoryIds || [],
-        readingSessionIds: []
+        tags: exportBook.tags || []
       }
 
       // Copy all optional fields
@@ -381,20 +364,6 @@ export class ExportService {
       result.notes = JSON.parse(notesText)
     }
 
-    // Handle categories
-    const categoriesFile = zip.file(rootPrefix + 'categories.json') || zip.file('categories.json')
-    if (categoriesFile) {
-      const categoriesText = await categoriesFile.async('string')
-      result.categories = JSON.parse(categoriesText)
-    }
-
-    // Handle sessions
-    const sessionsFile = zip.file(rootPrefix + 'sessions.json') || zip.file('sessions.json')
-    if (sessionsFile) {
-      const sessionsText = await sessionsFile.async('string')
-      result.sessions = JSON.parse(sessionsText)
-    }
-
     return result
   }
 
@@ -452,42 +421,6 @@ export class ExportService {
             imported++
           } catch (error) {
             errors.push(`Failed to import note: ${error}`)
-          }
-        }
-      }
-
-      // Import categories
-      const categories = data.categories as BookCategory[]
-      if (categories && Array.isArray(categories)) {
-        for (const category of categories) {
-          try {
-            const existing = await categoryRepository.getById(category.id)
-            if (existing && strategy === 'keepExisting') {
-              skipped++
-              continue
-            }
-            await db.categories.put(category)
-            imported++
-          } catch (error) {
-            errors.push(`Failed to import category "${category.name}": ${error}`)
-          }
-        }
-      }
-
-      // Import reading sessions
-      const sessions = data.sessions as ReadingSession[]
-      if (sessions && Array.isArray(sessions)) {
-        for (const session of sessions) {
-          try {
-            const existing = await sessionRepository.getById(session.id)
-            if (existing && strategy === 'keepExisting') {
-              skipped++
-              continue
-            }
-            await db.readingSessions.put(session)
-            imported++
-          } catch (error) {
-            errors.push(`Failed to import reading session: ${error}`)
           }
         }
       }

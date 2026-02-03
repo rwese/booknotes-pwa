@@ -1,15 +1,53 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { useBook, useDeleteBook } from '../../hooks/useBooks'
+import { useBookBySlug, useDeleteBook } from '../../hooks/useBooks'
 import { noteRepository } from '../../db/repositories/noteRepository'
+import { bookRepository } from '../../db/repositories/bookRepository'
+import { isUUID } from '../../utils/slug'
 import type { Note, Book } from '../../types'
 
 export function BookDetail() {
-  const { bookId } = useParams({ from: '/books/$bookId' })
+  const params = useParams({ from: '/books/$bookSlug' })
+  const { bookSlug } = params
   const navigate = useNavigate()
-  const { data: book, isLoading, error } = useBook(bookId || '')
+
+  // Check if the parameter is a UUID (legacy URL) or a slug
+  const [bookId, setBookId] = useState<string | null>(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    const resolveBook = async () => {
+      if (!bookSlug) return
+
+      if (isUUID(bookSlug)) {
+        // Legacy UUID URL - look up by ID and redirect to slug URL
+        const book = await bookRepository.getById(bookSlug)
+        if (book && mounted) {
+          setBookId(book.id)
+          // Redirect to slug URL
+          navigate({ to: '/books/$bookSlug', params: { bookSlug: book.slug }, replace: true })
+        }
+      } else {
+        // Slug URL - look up by slug
+        const book = await bookRepository.getBySlug(bookSlug)
+        if (book && mounted) {
+          setBookId(book.id)
+        }
+      }
+    }
+
+    resolveBook()
+
+    return () => { mounted = false }
+  }, [bookSlug, navigate])
+
+  const { data: book, isLoading, error } = useBookBySlug(bookSlug || '')
   const deleteBook = useDeleteBook()
   const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'notes'>('overview')
+
+  // If we resolved a legacy UUID, use that ID for operations
+  const effectiveBookId = bookId || (book ? book.id : undefined)
 
   const coverData = book?.coverThumbnailData || book?.coverImageData
   const coverUrl = useMemo(() => {
@@ -52,7 +90,7 @@ export function BookDetail() {
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this book?')) {
-      await deleteBook.mutateAsync(bookId!)
+      await deleteBook.mutateAsync(effectiveBookId!)
       navigate({ to: '/books' })
     }
   }
@@ -118,7 +156,7 @@ export function BookDetail() {
         </svg>
       </button>
 
-      <button className="fab" onClick={() => navigate({ to: '/books/$bookId/edit', params: { bookId: bookId! } })} aria-label="Edit Book">
+      <button className="fab" onClick={() => navigate({ to: '/books/$bookSlug/edit', params: { bookSlug: book.slug } })} aria-label="Edit Book">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
@@ -147,7 +185,7 @@ export function BookDetail() {
       <div className="book-detail__content">
         {activeTab === 'overview' && <OverviewTab book={book} />}
         {activeTab === 'details' && <DetailsTab book={book} />}
-        {activeTab === 'notes' && <NotesTab bookId={bookId!} />}
+        {activeTab === 'notes' && <NotesTab bookId={effectiveBookId!} />}
       </div>
     </div>
   )

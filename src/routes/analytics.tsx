@@ -5,30 +5,23 @@ import {
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
-  PointElement,
   ArcElement,
   Title,
   Tooltip,
-  Legend,
-  Filler
+  Legend
 } from 'chart.js'
 import type { ChartEvent, ActiveElement } from 'chart.js'
-import { Bar, Doughnut, Line } from 'react-chartjs-2'
+import { Bar, Doughnut } from 'react-chartjs-2'
 import { bookRepository } from '../db/repositories/bookRepository'
-import { sessionRepository } from '../db/repositories/sessionRepository'
 
 ChartJS.register(
   CategoryScale,
   LinearScale,
   BarElement,
-  LineElement,
-  PointElement,
   ArcElement,
   Title,
   Tooltip,
-  Legend,
-  Filler
+  Legend
 )
 
 // SVG Icons
@@ -83,16 +76,6 @@ function StatCard({ icon, value, label, colorClass, onClick }: { icon: React.Rea
   )
 }
 
-function ProgressCard({ value, label, unit }: { value: number | string; label: string; unit?: string }) {
-  return (
-    <div className="progress-card">
-      <div className="progress-card__value">{value}</div>
-      <div className="progress-card__label">{label}</div>
-      {unit && <div className="progress-card__unit">{unit}</div>}
-    </div>
-  )
-}
-
 function ChartCard({ title, children, emptyMessage }: { title: string; children: React.ReactNode; emptyMessage?: string }) {
   return (
     <div className="chart-card">
@@ -143,13 +126,6 @@ function RatingBarChart({ distribution, onRatingClick }: { distribution: Record<
   )
 }
 
-function formatReadingTime(ms: number): string {
-  if (!ms) return '0h 0m'
-  const hours = Math.floor(ms / (1000 * 60 * 60))
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
-  return `${hours}h ${minutes}m`
-}
-
 export function AnalyticsPage() {
   const navigate = useNavigate()
 
@@ -160,14 +136,6 @@ export function AnalyticsPage() {
     ratingDistribution: Record<number, number>
     averageRating: number
     totalBooks: number
-  } | null>(null)
-  const [readingStats, setReadingStats] = useState<{
-    totalSessions: number
-    totalPages: number
-    totalTime: number
-    byMonth: Record<string, { sessions: number; pages: number }>
-    averagePagesPerSession: number
-    readingSpeed: number
   } | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -182,14 +150,11 @@ export function AnalyticsPage() {
     const loadStats = async () => {
       try {
         console.log('Loading analytics data...')
-        const [bookData, sessionData] = await Promise.all([
-          bookRepository.getStatistics(),
-          sessionRepository.getStatistics()
+        const [bookData] = await Promise.all([
+          bookRepository.getStatistics()
         ])
         console.log('Book stats:', bookData)
-        console.log('Session stats:', sessionData)
         setBookStats(bookData)
-        setReadingStats(sessionData)
         setIsLoading(false)
       } catch (err) {
         console.error('Failed to load analytics:', err)
@@ -227,12 +192,12 @@ export function AnalyticsPage() {
     )
   }
 
-  if (!bookStats || !readingStats) {
+  if (!bookStats) {
     return (
       <div className="analytics-page">
         <div className="analytics-empty">
           <div className="analytics-empty__title">No data available</div>
-          <p className="analytics-empty__description">Start adding books and logging reading sessions to see your analytics.</p>
+          <p className="analytics-empty__description">Start adding books to see your analytics.</p>
         </div>
       </div>
     )
@@ -247,7 +212,6 @@ export function AnalyticsPage() {
   const hasBooks = bookStats.totalBooks > 0
   const hasRatings = Object.values(bookStats.ratingDistribution).some(v => v > 0)
   const hasGenres = Object.keys(bookStats.genreCount).length > 0
-  const hasMonths = Object.keys(readingStats.byMonth).length > 0
 
   // Status distribution chart
   const statusChartData = {
@@ -286,23 +250,6 @@ export function AnalyticsPage() {
         }
       }
     }
-  }
-
-  // Reading sessions over time
-  const months = Object.keys(readingStats.byMonth).sort().slice(-6)
-  const readingChartData = {
-    labels: months.map(m => {
-      const [year, month] = m.split('-')
-      return new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString('en-US', { month: 'short' })
-    }),
-    datasets: [{
-      label: 'Pages Read',
-      data: months.map(m => readingStats.byMonth[m]?.pages || 0),
-      borderColor: '#0ea5e9',
-      backgroundColor: 'rgba(14, 165, 233, 0.1)',
-      fill: true,
-      tension: 0.4
-    }]
   }
 
   return (
@@ -344,24 +291,6 @@ export function AnalyticsPage() {
         />
       </div>
 
-      {/* Reading Progress - 3 cards */}
-      <div className="progress-grid">
-        <ProgressCard
-          value={readingStats.totalPages}
-          label="Pages Read"
-          unit="pages"
-        />
-        <ProgressCard
-          value={formatReadingTime(readingStats.totalTime)}
-          label="Reading Time"
-        />
-        <ProgressCard
-          value={readingStats.readingSpeed.toFixed(1)}
-          label="Avg Speed"
-          unit="p/h"
-        />
-      </div>
-
       {/* Insights Section - Charts */}
       <section className="charts-section">
         <div className="charts-section__grid">
@@ -378,11 +307,6 @@ export function AnalyticsPage() {
           {/* Books by Genre */}
           <ChartCard title="Books by Genre" emptyMessage="No genre data yet">
             {hasGenres ? <Bar data={genreChartData} options={genreChartOptions} /> : null}
-          </ChartCard>
-
-          {/* Pages Over Time */}
-          <ChartCard title="Pages Over Time" emptyMessage="Start logging sessions to see progress">
-            {hasMonths ? <Line data={readingChartData} /> : null}
           </ChartCard>
         </div>
       </section>

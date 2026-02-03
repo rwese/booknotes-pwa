@@ -4,6 +4,7 @@ export type ReadingStatus = 'wantToRead' | 'currentlyReading' | 'read'
 
 export interface Book {
   id: string
+  slug: string // URL-friendly identifier (e.g., "the-great-gatsby-9780743273565")
   title: string
   author: string
   authorSortName: string
@@ -36,10 +37,6 @@ export interface Book {
   rating?: number // 1-5 stars
   tags: string[]
 
-  // Relationships
-  categoryIds: string[]
-  readingSessionIds: string[]
-
   // Ownership
   purchaseDate?: string
   purchasePrice?: number
@@ -60,27 +57,6 @@ export interface Note {
   updatedAt: string
 }
 
-export interface BookCategory {
-  id: string
-  name: string
-  color: string
-  parentId?: string
-  bookIds: string[]
-  createdAt: string
-  updatedAt: string
-}
-
-export interface ReadingSession {
-  id: string
-  bookId: string
-  startDate: string
-  endDate?: string
-  pagesRead: number
-  notes?: string
-  createdAt: string
-}
-
-// Export format types (matching spec/export-metadata-schema.json)
 export interface ExportMetadata {
   appVersion: string
   books: ExportBook[]
@@ -91,6 +67,7 @@ export interface ExportMetadata {
 
 export interface ExportBook {
   id: string
+  slug?: string
   title: string
   author: string
   isbn?: string
@@ -105,7 +82,6 @@ export interface ExportBook {
   readingStatus?: ReadingStatus
   rating?: number
   tags: string[]
-  categoryIds: string[]
   createdAt: string
   updatedAt: string
   coverKey: string | null
@@ -159,7 +135,6 @@ export interface BookFormData {
   readingStatus?: ReadingStatus
   rating?: number
   tags: string[]
-  categoryIds: string[]
   purchaseDate?: string
   purchasePrice?: number
   customNotes?: string
@@ -173,7 +148,6 @@ export interface BookFilters {
   status?: ReadingStatus | 'all'
   genre?: string
   tags?: string[]
-  categoryId?: string
   sortBy?: 'title' | 'author' | 'createdAt' | 'updatedAt' | 'rating'
   sortOrder?: 'asc' | 'desc'
 }
@@ -185,6 +159,4 @@ export interface AnalyticsData {
   booksByGenre: Record<string, number>
   averageRating: number
   ratingDistribution: Record<number, number>
-  readingSessionsByMonth: Record<string, number>
-  pagesReadByMonth: Record<string, number>
 }

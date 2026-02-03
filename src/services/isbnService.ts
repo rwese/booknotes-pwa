@@ -1,4 +1,5 @@
 import type { ISBNLookupResult } from '../types'
+import { API_CONFIG } from '../config/api'
 
 export class ISBNService {
   private static instance: ISBNService
@@ -74,9 +75,11 @@ export class ISBNService {
   }
 
   private async lookupGoogleBooks(isbn: string): Promise<ISBNLookupResult> {
-    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
+    const url = `${API_CONFIG.proxyBaseUrl}/isbn/${isbn}?source=google`
 
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      headers: this.getProxyHeaders()
+    })
     if (!response.ok) {
       throw new Error('Network error')
     }
@@ -122,9 +125,11 @@ export class ISBNService {
   }
 
   private async lookupOpenLibrary(isbn: string): Promise<ISBNLookupResult> {
-    const url = `https://openlibrary.org/isbn/${isbn}.json`
+    const url = `${API_CONFIG.proxyBaseUrl}/isbn/${isbn}?source=openlibrary`
 
-    const response = await fetch(url)
+    const response = await fetch(url, {
+      headers: this.getProxyHeaders()
+    })
     if (!response.ok) {
       throw new Error('Book not found')
     }
@@ -136,7 +141,10 @@ export class ISBNService {
     if (book.authors) {
       for (const authorRef of book.authors) {
         try {
-          const authorResponse = await fetch(`https://openlibrary.org${authorRef.key}.json`)
+          const authorUrl = `${API_CONFIG.proxyBaseUrl}/isbn/author?key=${encodeURIComponent(authorRef.key)}`
+          const authorResponse = await fetch(authorUrl, {
+            headers: this.getProxyHeaders()
+          })
           if (authorResponse.ok) {
             const authorData = await authorResponse.json()
             if (authorData.name) {
@@ -177,8 +185,17 @@ export class ISBNService {
     }
   }
 
+  private getProxyHeaders(): HeadersInit {
+    return {
+      'X-API-Key': API_CONFIG.apiKey
+    }
+  }
+
   private async downloadImage(url: string): Promise<Blob> {
-    const response = await fetch(url)
+    const proxyUrl = `${API_CONFIG.proxyBaseUrl}/cover/?url=${encodeURIComponent(url)}`
+    const response = await fetch(proxyUrl, {
+      headers: this.getProxyHeaders()
+    })
     if (!response.ok) {
       throw new Error('Failed to download image')
     }
