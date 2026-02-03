@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { exportService, type ImportStrategy } from '../services/exportService'
 import { useOfflineStatus } from '../hooks/useOfflineStatus'
+import { useApiSettings } from '../hooks/useApiSettings'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
@@ -81,6 +82,9 @@ export function SettingsPage() {
           <span style={{ color: '#22c55e' }}>Online</span>
         )}
       </div>
+
+      {/* API Settings */}
+      <ApiSettingsSection />
 
       {/* Export Section */}
       <div className="card" style={{ padding: 16, marginBottom: 16 }}>
@@ -194,6 +198,85 @@ export function SettingsPage() {
           A progressive web app for managing your book collection.
         </p>
       </div>
+    </div>
+  )
+}
+
+function ApiSettingsSection() {
+  const { proxyUrl, apiKey, setProxyUrl, setApiKey, resetToDefaults } = useApiSettings()
+  const [status, setStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
+  const [testMessage, setTestMessage] = useState('')
+
+  const testConnection = async () => {
+    setStatus('testing')
+    setTestMessage('Testing connection...')
+
+    try {
+      const url = `${proxyUrl}/isbn/9780451524935?source=google`
+      const response = await fetch(url, {
+        headers: { 'X-API-Key': apiKey }
+      })
+
+      if (response.ok || response.status === 404) {
+        setStatus('success')
+        setTestMessage('Connection successful!')
+      } else {
+        setStatus('error')
+        setTestMessage(`Connection failed (status: ${response.status})`)
+      }
+    } catch {
+      setStatus('error')
+      setTestMessage('Connection failed - check URL')
+    }
+  }
+
+  return (
+    <div className="card" style={{ padding: 16, marginBottom: 16 }}>
+      <h3 style={{ margin: '0 0 16px 0' }}>API Settings</h3>
+      <p style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6, marginBottom: 16 }}>
+        Configure the Cloudflare Worker proxy for ISBN lookups. Get your worker URL from your Cloudflare dashboard.
+      </p>
+
+      <div className="form-group">
+        <label className="form-label">Proxy URL</label>
+        <input
+          type="url"
+          value={proxyUrl}
+          onChange={(e) => setProxyUrl(e.target.value)}
+          placeholder="https://your-worker.workers.dev"
+          className="form-input"
+        />
+      </div>
+
+      <div className="form-group">
+        <label className="form-label">API Key (optional)</label>
+        <input
+          type="password"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          placeholder="Your worker API key"
+          className="form-input"
+        />
+      </div>
+
+      <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+        <button className="btn btn-secondary" onClick={testConnection} disabled={status === 'testing'}>
+          {status === 'testing' ? 'Testing...' : 'Test Connection'}
+        </button>
+        <button className="btn btn-secondary" onClick={resetToDefaults}>
+          Reset to Default
+        </button>
+      </div>
+
+      {status !== 'idle' && (
+        <p style={{
+          marginTop: 12,
+          fontSize: 14,
+          color: status === 'success' ? '#22c55e' : status === 'error' ? '#ef4444' : 'var(--app-text)'
+        }}>
+          {testMessage}
+        </p>
+      )}
     </div>
   )
 }
