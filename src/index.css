@@ -1809,3 +1809,91 @@ body {
 .tags-input__input::placeholder {
   color: #94a3b8;
 }
+
+/* ============================================
+   Cover Crop Modal Styles
+   ============================================ */
+.crop-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.crop-modal-container {
+  width: 100%;
+  max-width: 400px;
+  height: 100%;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--app-background);
+  border-radius: 16px;
+  overflow: hidden;
+  margin: 16px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@media (max-width: 480px) {
+  .crop-modal-container {
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 90vh;
+  }
+}
+
+.crop-modal-cropper {
+  flex: 1;
+  position: relative;
+  background-color: #1e293b;
+}
+
+.crop-modal-actions {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--app-border);
+  background-color: var(--app-background);
+}
+
+.crop-modal-actions .btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* react-easy-crop custom styles */
+.cropper-wrapper {
+  height: 100%;
+}
+
+.cropper-image {
+  max-width: 100%;
+  max-height: 100%;
+}

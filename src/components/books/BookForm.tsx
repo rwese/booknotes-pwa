@@ -1,5 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import Cropper from 'react-easy-crop'
+import type { Area } from 'react-easy-crop'
 import { useBookBySlug, useCreateBook, useUpdateBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
 import { isbnService } from '../../services/isbnService'
 import { coverImageService } from '../../services/coverImageService'
@@ -89,6 +91,13 @@ export function BookForm({ mode }: BookFormProps) {
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [initialFormData, setInitialFormData] = useState<BookFormData | null>(null)
   const [initialCover, setInitialCover] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
+
+  // Crop modal state
+  const [showCropModal, setShowCropModal] = useState(false)
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null)
+  const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
+  const [cropArea, setCropArea] = useState<Area | null>(null)
+  const [isProcessingCrop, setIsProcessingCrop] = useState(false)
 
   const hasUnsavedChanges = (() => {
     if (!initialFormData) return formData.title !== '' || formData.author !== ''
@@ -213,16 +222,84 @@ export function BookForm({ mode }: BookFormProps) {
     }
   }
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    const processed = await coverImageService.processImage(file)
-    setCoverImage({ image: processed.fullImage, thumbnail: processed.thumbnail })
+    // Read file and show crop modal
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      setCrop({ x: 0, y: 0 })
+      setCropArea(null)
+      setCropImageSrc(event.target?.result as string)
+      setShowCropModal(true)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleCoverClick = () => {
     fileInputRef.current?.click()
+  }
+
+  const onCropChange = useCallback((newCrop: { x: number; y: number }) => {
+    setCrop(newCrop)
+  }, [])
+
+  const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
+    setCropArea(croppedAreaPixels)
+  }, [])
+
+  const handleCropDone = async () => {
+    if (!cropImageSrc || !cropArea) return
+
+    // Validate crop area has valid dimensions
+    if (cropArea.width <= 0 || cropArea.height <= 0) {
+      console.error('Invalid crop area dimensions')
+      handleCropCancel()
+      return
+    }
+
+    setIsProcessingCrop(true)
+    try {
+      // Create a File from the image src
+      const response = await fetch(cropImageSrc)
+      const blob = await response.blob()
+      const file = new File([blob], 'cover.jpg', { type: 'image/jpeg' })
+
+      // Get image dimensions to convert pixels to percentages
+      const img = new Image()
+      img.src = cropImageSrc
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve()
+        img.onerror = reject
+      })
+
+      // Convert pixels to percentages for the service
+      const cropRect = {
+        x: cropArea.x / img.width,
+        y: cropArea.y / img.height,
+        width: cropArea.width / img.width,
+        height: cropArea.height / img.height
+      }
+
+      // Process with crop coordinates
+      const processed = await coverImageService.processImage(file, cropRect)
+
+      setCoverImage({ image: processed.fullImage, thumbnail: processed.thumbnail })
+      setShowCropModal(false)
+      setCropImageSrc(null)
+      setCropArea(null)
+    } catch (error) {
+      console.error('Failed to crop image:', error)
+    } finally {
+      setIsProcessingCrop(false)
+    }
+  }
+
+  const handleCropCancel = () => {
+    setShowCropModal(false)
+    setCropImageSrc(null)
+    setCropArea(null)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -545,6 +622,42 @@ export function BookForm({ mode }: BookFormProps) {
           <polyline points="7 3 7 8 15 8" />
         </svg>
       </button>
+
+      {/* Cover Crop Modal */}
+      {showCropModal && cropImageSrc && (
+        <div className="crop-modal-overlay">
+          <div className="crop-modal-container">
+            <div className="crop-modal-cropper">
+              <Cropper
+                image={cropImageSrc}
+                crop={crop}
+                onCropChange={onCropChange}
+                cropShape="rect"
+                aspect={2 / 3}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+            <div className="crop-modal-actions">
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={handleCropCancel}
+                disabled={isProcessingCrop}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={handleCropDone}
+                disabled={isProcessingCrop}
+              >
+                {isProcessingCrop ? 'Processing...' : 'Done'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   )
 }
