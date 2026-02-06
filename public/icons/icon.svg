@@ -1,8 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
   <rect width="512" height="512" rx="64" fill="#0ea5e9"/>
-  <path d="M128 96h256v320H128V96z" fill="white" opacity="0.9"/>
+  <!-- Book shape -->
+  <path d="M128 96h256v320H128V96z" fill="white" opacity="0.95"/>
+  <!-- Book spine/cover detail -->
   <path d="M144 112v288h224V112H144z" fill="none" stroke="white" stroke-width="8"/>
-  <line x1="168" y1="144" x2="344" y2="144" stroke="white" stroke-width="4" opacity="0.5"/>
-  <line x1="168" y1="176" x2="344" y2="176" stroke="white" stroke-width="4" opacity="0.5"/>
-  <line x1="168" y1="208" x2="280" y2="208" stroke="white" stroke-width="4" opacity="0.5"/>
+  <!-- Book lines representing text -->
+  <line x1="168" y1="144" x2="344" y2="144" stroke="#0ea5e9" stroke-width="4" opacity="0.7"/>
+  <line x1="168" y1="176" x2="344" y2="176" stroke="#0ea5e9" stroke-width="4" opacity="0.7"/>
+  <line x1="168" y1="208" x2="280" y2="208" stroke="#0ea5e9" stroke-width="4" opacity="0.7"/>
 </svg>

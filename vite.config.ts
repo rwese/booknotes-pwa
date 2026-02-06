@@ -28,6 +28,21 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
+            src: '/icons/favicon-32.png',
+            sizes: '32x32',
+            type: 'image/png'
+          },
+          {
+            src: '/icons/favicon-16.png',
+            sizes: '16x16',
+            type: 'image/png'
+          },
+          {
+            src: '/icons/favicon-196.png',
+            sizes: '196x196',
+            type: 'image/png'
+          },
+          {
             src: '/icons/manifest-icon-192.maskable.png',
             sizes: '192x192',
             type: 'image/png',
