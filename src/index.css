@@ -372,21 +372,6 @@ body {
   }
 }
 
-/* Offline indicator */
-.offline-indicator {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  background-color: #f59e0b;
-  color: white;
-  padding: 8px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  z-index: 1000;
-}
-
 /* Loading states */
 .skeleton {
   background: linear-gradient(90deg, var(--app-surface) 25%, var(--app-border) 50%, var(--app-surface) 75%);

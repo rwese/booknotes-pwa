@@ -1,12 +1,10 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { exportService, type ImportStrategy } from '../services/exportService'
-import { useOfflineStatus } from '../hooks/useOfflineStatus'
 import { useApiSettings } from '../hooks/useApiSettings'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
-  const isOffline = useOfflineStatus()
   const [isExporting, setIsExporting] = useState(false)
   const [isImporting, setIsImporting] = useState(false)
   const [importResult, setImportResult] = useState<{ imported: number; skipped: number; errors: string[] } | null>(null)
@@ -72,16 +70,6 @@ export function SettingsPage() {
   return (
     <div className="settings-page" style={{ padding: 16 }}>
       <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Settings</h1>
-
-      {/* Offline Status */}
-      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-        <h3 style={{ margin: '0 0 8px 0' }}>Status</h3>
-        {isOffline ? (
-          <span style={{ color: '#f59e0b' }}>You are currently offline</span>
-        ) : (
-          <span style={{ color: '#22c55e' }}>Online</span>
-        )}
-      </div>
 
       {/* API Settings */}
       <ApiSettingsSection />

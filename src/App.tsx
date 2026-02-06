@@ -1,6 +1,5 @@
 import { Outlet, useLocation } from '@tanstack/react-router'
-import { useOfflineStatus } from './hooks/useOfflineStatus'
-import { BASE_PATH } from './routeTree'
+
 
 function TabBar() {
   const location = useLocation()
@@ -48,22 +47,9 @@ function TabBar() {
   )
 }
 
-function OfflineIndicator() {
-  const isOffline = useOfflineStatus()
-
-  if (!isOffline) return null
-
-  return (
-    <div className="offline-indicator">
-      You are offline. Changes will sync when connected.
-    </div>
-  )
-}
-
 function App() {
   return (
     <div className="app-shell">
-      <OfflineIndicator />
       <main className="main-content">
         <Outlet />
       </main>
