@@ -5,6 +5,7 @@ import { noteRepository } from '../../db/repositories/noteRepository'
 import { bookRepository } from '../../db/repositories/bookRepository'
 import { isUUID } from '../../utils/slug'
 import type { Note, Book } from '../../types'
+import './BookDetail.css'
 
 export function BookDetail() {
   const params = useParams({ from: '/books/$bookSlug' })
@@ -97,11 +98,11 @@ export function BookDetail() {
     return (
       <div className="book-detail">
         <div className="book-detail__hero">
-          <div className="skeleton" style={{ width: 150, height: 225, borderRadius: 8 }} />
-          <div style={{ flex: 1 }}>
-            <div className="skeleton" style={{ height: 32, marginBottom: 12, width: '80%' }} />
-            <div className="skeleton" style={{ height: 20, marginBottom: 8, width: '50%' }} />
-            <div className="skeleton" style={{ height: 24, width: '30%' }} />
+          <div className="skeleton w-[150px] h-[225px] rounded-lg" />
+          <div className="flex-1">
+            <div className="skeleton h-8 mb-3 w-4/5" />
+            <div className="skeleton h-5 mb-2 w-1/2" />
+            <div className="skeleton h-6 w-1/3" />
           </div>
         </div>
       </div>
@@ -151,7 +152,7 @@ export function BookDetail() {
           />
         ) : (
           <div className="book-detail__cover-placeholder">
-            <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--app-border)' }}>
+            <svg width="48" height="48" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-border">
               <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
               <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
             </svg>
@@ -228,15 +229,15 @@ function OverviewTab({ book }: { book: Book }) {
   return (
     <div className="overview-tab">
       {book.subtitle && (
-        <div className="details-grid__item" style={{ marginBottom: 16 }}>
+        <div className="details-grid__item mb-4">
           <div className="details-grid__label">Subtitle</div>
           <div className="details-grid__value">{book.subtitle}</div>
         </div>
       )}
       {book.tags.length > 0 && (
-        <div style={{ marginBottom: 16 }}>
-          <div className="details-grid__label" style={{ marginBottom: 8 }}>Tags</div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        <div className="mb-4">
+          <div className="details-grid__label mb-2">Tags</div>
+          <div className="flex flex-wrap gap-2">
             {book.tags.map((tag) => (
               <span key={tag} className="badge badge--tag">{tag}</span>
             ))}
@@ -245,12 +246,12 @@ function OverviewTab({ book }: { book: Book }) {
       )}
       {book.customNotes && (
         <div className="note-card">
-          <div className="details-grid__label" style={{ marginBottom: 8 }}>Notes</div>
-          <p className="note-card__text" style={{ margin: 0 }}>{book.customNotes}</p>
+          <div className="details-grid__label mb-2">Notes</div>
+          <p className="note-card__text m-0">{book.customNotes}</p>
         </div>
       )}
       {!book.subtitle && book.tags.length === 0 && !book.customNotes && (
-        <div style={{ color: '#64748b', textAlign: 'center', padding: 24 }}>
+        <div className="text-[#64748b] text-center py-6">
           No overview information available. Add some tags or notes!
         </div>
       )}
@@ -273,7 +274,7 @@ function DetailsTab({ book }: { book: Book }) {
 
   if (details.length === 0) {
     return (
-      <div style={{ color: '#64748b', textAlign: 'center', padding: 24 }}>
+      <div className="text-[#64748b] text-center py-6">
         No details available. Edit the book to add more information.
       </div>
     )
@@ -332,17 +333,16 @@ function NotesTab({ bookId }: { bookId: string }) {
 
   return (
     <div className="notes-tab">
-      <div style={{ marginBottom: 16 }}>
+      <div className="mb-4">
         <textarea
           value={newNote}
           onChange={(e) => setNewNote(e.target.value)}
           placeholder="Add a note..."
-          className="form-input"
+          className="form-input w-full mb-2"
           rows={3}
-          style={{ width: '100%', marginBottom: 8 }}
         />
         <button className="btn btn-primary" onClick={handleAddNote} disabled={!newNote.trim()}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 6 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-1.5">
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
@@ -351,12 +351,12 @@ function NotesTab({ bookId }: { bookId: string }) {
       </div>
 
       {isLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div className="skeleton" style={{ height: 80, borderRadius: 12 }} />
-          <div className="skeleton" style={{ height: 80, borderRadius: 12 }} />
+        <div className="flex flex-col gap-3">
+          <div className="skeleton h-20 rounded-lg" />
+          <div className="skeleton h-20 rounded-lg" />
         </div>
       ) : notes.length === 0 ? (
-        <div style={{ color: '#64748b', textAlign: 'center', padding: 24 }}>
+        <div className="text-[#64748b] text-center py-6">
           No notes yet. Add your first note above!
         </div>
       ) : (

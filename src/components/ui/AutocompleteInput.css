@@ -1,0 +1,46 @@
+/* AutocompleteInput component styles */
+.autocomplete {
+  position: relative;
+  width: 100%;
+}
+
+.autocomplete__list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin: 4px 0 0 0;
+  padding: 4px 0;
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  list-style: none;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 50;
+}
+
+@media (prefers-color-scheme: dark) {
+  .autocomplete__list {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.autocomplete__item {
+  padding: 10px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: background-color 0.1s;
+}
+
+.autocomplete__item:hover,
+.autocomplete__item--highlighted {
+  background-color: var(--surface-secondary);
+}
+
+.autocomplete__item--highlighted {
+  background-color: var(--primary);
+  color: white;
+}

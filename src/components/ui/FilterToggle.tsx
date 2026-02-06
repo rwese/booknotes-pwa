@@ -4,6 +4,8 @@ interface FilterToggleProps {
   activeCount: number
 }
 
+import './FilterToggle.css'
+
 export function FilterToggle({ isOpen, onToggle, activeCount }: FilterToggleProps) {
   return (
     <button

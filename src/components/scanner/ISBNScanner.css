@@ -1,0 +1,102 @@
+/* ISBNScanner component styles */
+.isbn-scanner {
+  padding: 1rem;
+}
+
+.isbn-scanner h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.scanner-options {
+  margin-bottom: 1.5rem;
+}
+
+.scanner-options .btn--primary {
+  width: 100%;
+  padding: 1rem 1.5rem;
+  font-size: 18px;
+}
+
+.scanner-options .btn--primary svg {
+  margin-right: 8px;
+}
+
+.scanner-options > div:first-child {
+  margin-bottom: 1.5rem;
+}
+
+.scanner-options > div:first-child p {
+  font-size: 12px;
+  color: var(--text-primary);
+  opacity: 0.6;
+  margin-top: 8px;
+  text-align: center;
+}
+
+.scanner-options > div:last-child {
+  border-top: 1px solid var(--border);
+  padding-top: 1.5rem;
+}
+
+.scanner-options > div:last-child h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+.scanner-options form {
+  display: flex;
+  gap: 8px;
+}
+
+.scanner-options .form-input {
+  flex: 1;
+}
+
+.last-scanned {
+  margin-top: 1.5rem;
+  padding: 12px;
+  background-color: #f0fdf4;
+  border-radius: 8px;
+}
+
+.last-scanned p {
+  color: #16a34a;
+  margin: 0;
+  font-size: 14px;
+}
+
+.last-scanned strong {
+  font-weight: 600;
+}
+
+/* Scanner view */
+.scanner-view {
+  position: relative;
+}
+
+.scanner-view #isbn-scanner-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #000;
+}
+
+.scanner-view .btn--secondary {
+  margin-top: 1rem;
+  width: 100%;
+}
+
+/* Scanner overlay animations */
+@keyframes scan {
+  0%, 100% {
+    top: 0;
+  }
+  50% {
+    top: 100%;
+  }
+}

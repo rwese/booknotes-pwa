@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { Book } from '../../types'
+import './BookGridCard.css'
 
 interface BookGridCardProps {
   book: Book

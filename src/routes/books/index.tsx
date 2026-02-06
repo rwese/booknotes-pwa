@@ -178,10 +178,10 @@ export function BooksIndex() {
 
   if (isLoading) {
     return (
-      <div style={{ padding: 20 }}>
-        <div className="skeleton" style={{ height: 60, marginBottom: 8 }} />
-        <div className="skeleton" style={{ height: 100, marginBottom: 8 }} />
-        <div className="skeleton" style={{ height: 100, marginBottom: 8 }} />
+      <div className="p-5">
+        <div className="skeleton h-[60px] mb-2" />
+        <div className="skeleton h-24 mb-2" />
+        <div className="skeleton h-24 mb-2" />
       </div>
     )
   }
@@ -195,7 +195,7 @@ export function BooksIndex() {
   }
 
   return (
-    <div className="books-page" style={{ padding: 16 }}>
+    <div className="books-page p-4">
       <div className="page-header">
         <h1 className="page-header__title">Books</h1>
       </div>

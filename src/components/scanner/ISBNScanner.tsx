@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
 import { useNavigate } from '@tanstack/react-router'
+import './ISBNScanner.css'
 
 export function ISBNScanner() {
   const navigate = useNavigate()
@@ -33,11 +34,11 @@ export function ISBNScanner() {
 
   return (
     <div className="isbn-scanner">
-      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16 }}>Scan ISBN</h1>
+      <h1 className="text-2xl font-semibold mb-4">Scan ISBN</h1>
 
       {error && (
-        <div style={{ padding: 12, backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ color: '#dc2626', margin: 0 }}>{error}</p>
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
+          <p className="text-red-600 m-0">{error}</p>
         </div>
       )}
 
@@ -49,13 +50,13 @@ export function ISBNScanner() {
         />
       ) : (
         <div className="scanner-options">
-          <div style={{ marginBottom: 24 }}>
+          <div className="mb-6">
             <button
-              className="btn btn-primary"
+              type="button"
+              className="btn btn--primary w-full py-4 text-lg"
               onClick={startScanning}
-              style={{ width: '100%', padding: '16px 24px', fontSize: 18 }}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: 8 }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-2">
                 <path d="M3 7V5a2 2 0 0 1 2-2h2" />
                 <path d="M17 3h2a2 2 0 0 1 2 2v2" />
                 <path d="M21 17v2a2 2 0 0 1-2 2h-2" />
@@ -64,28 +65,28 @@ export function ISBNScanner() {
               </svg>
               Start Camera Scanner
             </button>
-            <p style={{ fontSize: 12, color: 'var(--app-text)', opacity: 0.6, marginTop: 8, textAlign: 'center' }}>
+            <p className="text-sm text-[var(--text-primary)] opacity-60 mt-2 text-center">
               Point your camera at a book barcode (ISBN)
             </p>
           </div>
 
-          <div style={{ borderTop: '1px solid var(--app-border)', paddingTop: 24 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 12 }}>Or enter ISBN manually</h3>
-            <form onSubmit={handleManualSubmit} style={{ display: 'flex', gap: 8 }}>
+          <div className="border-t border-[var(--border)] pt-6">
+            <h3 className="text-base font-semibold mb-3">Or enter ISBN manually</h3>
+            <form onSubmit={handleManualSubmit} className="flex gap-2">
               <input
                 type="text"
                 value={manualISBN}
                 onChange={(e) => setManualISBN(e.target.value)}
                 placeholder="Enter ISBN (10 or 13 digits)"
-                className="form-input"
+                className="form-input flex-1"
               />
-              <button type="submit" className="btn btn-secondary">Go</button>
+              <button type="submit" className="btn btn--secondary">Go</button>
             </form>
           </div>
 
           {lastScanned && (
-            <div style={{ marginTop: 24, padding: 12, backgroundColor: '#f0fdf4', borderRadius: 8 }}>
-              <p style={{ color: '#16a34a', margin: 0, fontSize: 14 }}>
+            <div className="mt-6 p-3 bg-green-50 rounded-lg">
+              <p className="text-green-700 m-0 text-sm">
                 Last scanned: <strong>{lastScanned}</strong>
               </p>
             </div>
@@ -143,9 +144,10 @@ function ScannerView({ onScan, onError, onClose }: ScannerViewProps) {
   }, [onScan, onError, onClose])
 
   return (
-    <div className="scanner-view" style={{ position: 'relative' }}>
+    <div className="scanner-view relative">
       <div
         id={scannerId}
+        className="w-full max-w-md mx-auto rounded-lg overflow-hidden bg-black"
         style={{
           width: '100%',
           maxWidth: 400,
@@ -156,18 +158,11 @@ function ScannerView({ onScan, onError, onClose }: ScannerViewProps) {
         }}
       />
 
-      <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 250, height: 150, border: '2px solid var(--app-primary)', borderRadius: 8, pointerEvents: 'none' }}>
-        <div style={{ position: 'absolute', left: 0, right: 0, height: 2, backgroundColor: 'var(--app-primary)', animation: 'scan 2s ease-in-out infinite' }} />
+      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[250px] h-[150px] border-2 border-[var(--primary)] rounded-lg pointer-events-none">
+        <div className="absolute left-0 right-0 h-0.5 bg-[var(--primary)] animate-[scan_2s_ease-in-out_infinite]" />
       </div>
 
-      <style>{`
-        @keyframes scan {
-          0%, 100% { top: 0; }
-          50% { top: 100%; }
-        }
-      `}</style>
-
-      <button className="btn btn-secondary" onClick={onClose} style={{ marginTop: 16, width: '100%' }}>Cancel</button>
+      <button type="button" className="btn btn--secondary mt-4 w-full" onClick={onClose}>Cancel</button>
     </div>
   )
 }
