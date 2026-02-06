@@ -7,7 +7,8 @@ import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { BooksIndex } from './routes/books'
 
-const BASE_PATH = '/booknotes-pwa'
+// Base path for GitHub Pages deployment - exported for use in other components
+export const BASE_PATH = '/booknotes-pwa'
 
 // Root layout route
 const RootRoute = createRootRoute({
