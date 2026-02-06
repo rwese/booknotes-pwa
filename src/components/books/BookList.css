@@ -1,4 +1,27 @@
 /* BookList component styles */
+
+/* Grid container for book cards */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 16px;
+  padding: 4px;
+}
+
+@media (min-width: 640px) {
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .book-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 24px;
+  }
+}
+
 .book-list {
   background-color: var(--app-surface-primary);
   border: 1px solid var(--app-border);
