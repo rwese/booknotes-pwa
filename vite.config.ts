@@ -11,7 +11,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'icons/*.svg'],
+      includeAssets: ['icons/*.png', 'icons/*.svg'], // Relative path - Vite will prefix with base
       injectManifest: undefined,
       devOptions: {
         enabled: false
@@ -28,46 +28,46 @@ export default defineConfig({
         start_url: '/',
         icons: [
           {
-            src: '/icons/apple-icon-180.png',
+            src: 'icons/apple-icon-180.png',
             sizes: '180x180',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/icons/favicon-196.png',
+            src: 'icons/favicon-196.png',
             sizes: '196x196',
             type: 'image/png'
           },
           {
-            src: '/icons/favicon-32.png',
+            src: 'icons/favicon-32.png',
             sizes: '32x32',
             type: 'image/png'
           },
           {
-            src: '/icons/favicon-16.png',
+            src: 'icons/favicon-16.png',
             sizes: '16x16',
             type: 'image/png'
           },
           {
-            src: '/icons/manifest-icon-192.maskable.png',
+            src: 'icons/manifest-icon-192.maskable.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/icons/manifest-icon-192.maskable.png',
+            src: 'icons/manifest-icon-192.maskable.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'maskable'
           },
           {
-            src: '/icons/manifest-icon-512.maskable.png',
+            src: 'icons/manifest-icon-512.maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any'
           },
           {
-            src: '/icons/manifest-icon-512.maskable.png',
+            src: 'icons/manifest-icon-512.maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable'
