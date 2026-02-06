@@ -15,6 +15,7 @@ export function BooksIndex() {
   const [globalFilter, setGlobalFilter] = useState('')
   const [viewMode, setViewMode] = useViewPreference('list')
   const [showFilters, setShowFilters] = useState(false)
+  const [showSearch, setShowSearch] = useState(false)
   const { params, setParams, clearParams } = useHashParams()
   const [sortBy, setSortBy] = useState<SortOption>('title')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -197,7 +198,56 @@ export function BooksIndex() {
   return (
     <div className="books-page" style={{ padding: 16 }}>
       <div className="page-header">
-        <h1 className="page-header__title">Books</h1>
+        {showSearch ? (
+          <div className="search-input-container">
+            <button
+              type="button"
+              className="search-close"
+              onClick={() => {
+                setShowSearch(false)
+                setGlobalFilter('')
+              }}
+              aria-label="Close search"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+            <input
+              type="text"
+              placeholder="Search books..."
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              className="form-input search-input"
+            />
+          </div>
+        ) : (
+          <div className="filter-bar__controls">
+            <button
+              type="button"
+              className="search-toggle"
+              onClick={() => setShowSearch(true)}
+              aria-label="Open search"
+            >
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </button>
+            <SortToggle
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              onSortChange={handleSortChange}
+            />
+            <FilterToggle
+              isOpen={showFilters}
+              onToggle={() => setShowFilters(!showFilters)}
+              activeCount={activeFilterCount}
+            />
+            <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+          </div>
+        )}
       </div>
 
       <button type="button" className="fab" onClick={handleAddBook} aria-label="Add Book">
@@ -207,28 +257,6 @@ export function BooksIndex() {
         </svg>
       </button>
 
-      <div className="filter-bar">
-        <input
-          type="text"
-          placeholder="Search books..."
-          value={globalFilter}
-          onChange={(e) => setGlobalFilter(e.target.value)}
-          className="form-input filter-bar__search"
-        />
-        <div className="filter-bar__controls">
-          <SortToggle
-            sortBy={sortBy}
-            sortOrder={sortOrder}
-            onSortChange={handleSortChange}
-          />
-          <FilterToggle
-            isOpen={showFilters}
-            onToggle={() => setShowFilters(!showFilters)}
-            activeCount={activeFilterCount}
-          />
-          <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-        </div>
-      </div>
       <div className={`filter-bar__expandable ${showFilters ? 'filter-bar__expandable--open' : ''}`}>
         <select
           value={statusFilter}
