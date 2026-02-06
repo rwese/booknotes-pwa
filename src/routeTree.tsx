@@ -7,7 +7,7 @@ import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { BooksIndex } from './routes/books'
 
-// Base path handled by vite.config.ts
+const BASE_PATH = '/booknotes-pwa'
 
 // Root layout route
 const RootRoute = createRootRoute({
@@ -85,9 +85,9 @@ const routeTree = RootRoute.addChildren([
   settingsRoute
 ])
 
-// Remove basepath from TanStack Router - let vite handle it
 export const router = createRouter({
-  routeTree
+  routeTree,
+  basepath: BASE_PATH
 })
 
 declare module '@tanstack/react-router' {
