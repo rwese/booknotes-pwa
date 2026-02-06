@@ -1,0 +1,101 @@
+/* SortToggle component styles */
+.sort-toggle-container {
+  position: relative;
+}
+
+.sort-toggle__arrow {
+  margin-left: 4px;
+}
+
+.sort-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  min-width: 160px;
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 4px 0;
+  z-index: 100;
+}
+
+@media (prefers-color-scheme: dark) {
+  .sort-dropdown {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  }
+}
+
+.sort-dropdown__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background-color 0.1s;
+}
+
+.sort-dropdown__item:hover {
+  background-color: var(--surface-secondary);
+}
+
+.sort-dropdown__item--active {
+  background-color: var(--surface-secondary);
+  font-weight: 500;
+}
+
+.sort-dropdown__check {
+  color: var(--primary);
+}
+
+.sort-dropdown__divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 4px 0;
+}
+
+.sort-dropdown__arrow-icon {
+  margin-left: 4px;
+  color: var(--text-secondary);
+}
+
+/* Status buttons (shared with FilterToggle styles) */
+.status-buttons {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.status-buttons__btn {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--border);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--text-primary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.status-buttons__btn:last-child {
+  border-right: none;
+}
+
+.status-buttons__btn:hover:not(.status-buttons__btn--active) {
+  background-color: var(--surface-secondary);
+}
+
+.status-buttons__btn--active {
+  background-color: var(--primary);
+  color: white;
+}

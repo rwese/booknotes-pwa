@@ -9,6 +9,7 @@ import {
   type SortingState
 } from '@tanstack/react-table'
 import type { Book } from '../../types'
+import './BookList.css'
 
 const columnHelper = createColumnHelper<Book>()
 
@@ -128,7 +129,7 @@ export function BookList({ books, onBookClick }: BookListProps) {
 
   return (
     <div className="book-list">
-      <div className="search-bar" style={{ marginBottom: 16 }}>
+      <div className="search-bar mb-4">
         <input
           type="text"
           placeholder="Search books..."
@@ -138,20 +139,14 @@ export function BookList({ books, onBookClick }: BookListProps) {
         />
       </div>
 
-      <div className="book-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <div className="book-table w-full border-collapse">
         {table.getHeaderGroups().map((headerGroup) => (
-          <tr key={headerGroup.id} style={{ borderBottom: '1px solid var(--app-border)' }}>
+          <tr key={headerGroup.id} className="border-b border-[var(--border)]">
             {headerGroup.headers.map((header) => (
               <th
                 key={header.id}
                 onClick={header.column.getToggleSortingHandler()}
-                style={{
-                  padding: '12px',
-                  textAlign: 'left',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  userSelect: 'none'
-                }}
+                className="p-3 text-left font-semibold cursor-pointer select-none"
               >
                 {flexRender(header.column.columnDef.header, header.getContext())}
                 {{
@@ -167,11 +162,10 @@ export function BookList({ books, onBookClick }: BookListProps) {
             <tr
               key={row.id}
               onClick={() => onBookClick(row.original)}
-              className="book-card"
-              style={{ cursor: 'pointer' }}
+              className="book-card cursor-pointer"
             >
               {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} style={{ padding: '12px' }}>
+                <td key={cell.id} className="p-3">
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </td>
               ))}

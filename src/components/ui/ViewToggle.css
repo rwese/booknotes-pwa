@@ -1,0 +1,35 @@
+/* ViewToggle component styles */
+.view-toggle {
+  display: flex;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.view-toggle__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-primary);
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.view-toggle__btn:hover {
+  background-color: var(--surface-secondary);
+  opacity: 1;
+}
+
+.view-toggle__btn--active {
+  background-color: var(--primary);
+  color: white;
+  opacity: 1;
+}
+
+.view-toggle__btn--active:hover {
+  background-color: var(--primary);
+}

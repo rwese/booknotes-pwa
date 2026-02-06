@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
+import './AutocompleteInput.css'
 
 interface AutocompleteInputProps {
   value: string

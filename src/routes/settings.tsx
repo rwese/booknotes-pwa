@@ -68,19 +68,19 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="settings-page" style={{ padding: 16 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 600, marginBottom: 24 }}>Settings</h1>
+    <div className="settings-page p-4">
+      <h1 className="text-2xl font-semibold mb-6">Settings</h1>
 
       {/* API Settings */}
       <ApiSettingsSection />
 
       {/* Export Section */}
-      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-        <h3 style={{ margin: '0 0 16px 0' }}>Export Data</h3>
-        <p style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6, marginBottom: 16 }}>
+      <div className="card p-4 mb-4">
+        <h3 className="m-0 mb-4">Export Data</h3>
+        <p className="text-sm text-[var(--text-primary)] opacity-60 mb-4">
           Export your book collection for backup or transfer.
         </p>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+        <div className="flex gap-3 flex-wrap">
           <button
             type="button"
             className="btn btn--primary"
@@ -101,8 +101,8 @@ export function SettingsPage() {
       </div>
 
       {/* Import Section */}
-      <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-        <h3 style={{ margin: '0 0 16px 0' }}>Import Data</h3>
+      <div className="card p-4 mb-4">
+        <h3 className="m-0 mb-4">Import Data</h3>
         <div className="form-group">
           <label className="form-label">Select file (JSON or ZIP)</label>
           <input
@@ -130,10 +130,9 @@ export function SettingsPage() {
 
         <button
           type="button"
-          className="btn btn--primary"
+          className="btn btn--primary mt-2"
           onClick={handleImportClick}
           disabled={!selectedFile || isImporting}
-          style={{ marginTop: 8 }}
         >
           {isImporting ? 'Importing...' : 'Import'}
         </button>
@@ -141,16 +140,16 @@ export function SettingsPage() {
 
       {/* Import Result */}
       {importResult && (
-        <div className="card" style={{ padding: 16 }}>
-          <h3 style={{ margin: '0 0 16px 0' }}>Import Result</h3>
-          <div style={{ marginBottom: 12 }}>
+        <div className="card p-4">
+          <h3 className="m-0 mb-4">Import Result</h3>
+          <div className="mb-3">
             <strong>{importResult.imported}</strong> items imported,{' '}
             <strong>{importResult.skipped}</strong> skipped
           </div>
           {importResult.errors.length > 0 && (
-            <div style={{ color: '#ef4444', fontSize: 14 }}>
+            <div className="text-[#ef4444] text-sm">
               <strong>Errors:</strong>
-              <ul style={{ margin: '8px 0', paddingLeft: 20 }}>
+              <ul className="m-2 pl-5">
                 {importResult.errors.map((error, i) => (
                   <li key={i}>{error}</li>
                 ))}
@@ -166,14 +165,14 @@ export function SettingsPage() {
       {/* Confirmation Modal */}
       {showImportConfirm && (
         <div className="modal-overlay" onClick={() => setShowImportConfirm(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 400 }}>
-            <h3 style={{ margin: '0 0 16px 0' }}>Confirm Import</h3>
+          <div className="modal-content max-w-md" onClick={(e) => e.stopPropagation()}>
+            <h3 className="m-0 mb-4">Confirm Import</h3>
             <p>
               This will import data from <strong>{selectedFile?.name}</strong>.
               <br /><br />
               Strategy: <strong>{importStrategy}</strong>
             </p>
-            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <div className="flex gap-2 mt-4">
               <button type="button" className="btn btn--primary" onClick={confirmImport}>Import</button>
               <button type="button" className="btn btn--secondary" onClick={() => setShowImportConfirm(false)}>Cancel</button>
             </div>
@@ -182,9 +181,9 @@ export function SettingsPage() {
       )}
 
       {/* About Section */}
-      <div className="card" style={{ padding: 16, marginTop: 24 }}>
-        <h3 style={{ margin: '0 0 8px 0' }}>About</h3>
-        <p style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6 }}>
+      <div className="card p-4 mt-6">
+        <h3 className="m-0 mb-2">About</h3>
+        <p className="text-sm text-[var(--text-primary)] opacity-60">
           BookNotes PWA v1.0<br />
           A progressive web app for managing your book collection.
         </p>
@@ -245,9 +244,9 @@ function ApiSettingsSection() {
   }
 
   return (
-    <div className="card" style={{ padding: 16, marginBottom: 16 }}>
-      <h3 style={{ margin: '0 0 16px 0' }}>API Settings</h3>
-      <p style={{ fontSize: 14, color: 'var(--app-text)', opacity: 0.6, marginBottom: 16 }}>
+    <div className="card p-4 mb-4">
+      <h3 className="m-0 mb-4">API Settings</h3>
+      <p className="text-sm text-[var(--text-primary)] opacity-60 mb-4">
         Configure the Cloudflare Worker proxy for ISBN lookups. Get your worker URL from your Cloudflare dashboard.
       </p>
 
@@ -273,7 +272,7 @@ function ApiSettingsSection() {
         />
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
+      <div className="flex gap-2 mt-2 items-center">
         <button type="button" className="btn btn--secondary" onClick={testConnection} disabled={status === 'testing'}>
           {status === 'testing' ? 'Testing...' : 'Test Connection'}
         </button>
@@ -283,10 +282,8 @@ function ApiSettingsSection() {
       </div>
 
       {status !== 'idle' && (
-        <p style={{
-          marginTop: 12,
-          fontSize: 14,
-          color: status === 'success' ? '#22c55e' : status === 'error' ? '#ef4444' : 'var(--app-text)'
+        <p className="mt-3 text-sm" style={{
+          color: status === 'success' ? '#22c55e' : status === 'error' ? '#ef4444' : 'var(--text-primary)'
         }}>
           {testMessage}
         </p>
