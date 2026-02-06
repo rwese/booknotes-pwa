@@ -6,12 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:pages": "GITHUB_PAGES=true tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "preview:pages": "GITHUB_PAGES=true vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:acceptance": "playwright test",
-    "test:acceptance:ui": "playwright test --ui"
+    "test:acceptance:ui": "playwright test --ui",
+    "deploy": "npm run build:pages && npm run preview:pages -- --port 4173 & sleep 5 && curl -I http://localhost:4173"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.28.0",

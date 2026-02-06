@@ -2,9 +2,11 @@ import { defineConfig, type UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
+const isGitHubPages = process.env.GITHUB_PAGES === 'true'
+
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: isGitHubPages ? '/booknotes-pwa/' : './',
   plugins: [
     react(),
     VitePWA({
