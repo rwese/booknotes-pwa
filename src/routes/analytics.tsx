@@ -227,24 +227,44 @@ export function AnalyticsPage() {
     }]
   }
 
-  // Genre distribution chart
+  // Genre distribution chart - sorted by count descending, excluding "books"
+  const sortedGenres = Object.entries(bookStats.genreCount)
+    .filter(([genre]) => genre.toLowerCase() !== 'books')
+    .sort(([, a], [, b]) => b - a)
   const genreChartData = {
-    labels: Object.keys(bookStats.genreCount),
+    labels: sortedGenres.map(([genre]) => genre),
     datasets: [{
       label: 'Books',
-      data: Object.values(bookStats.genreCount),
-      backgroundColor: '#0ea5e9'
+      data: sortedGenres.map(([, count]) => count),
+      backgroundColor: '#6366f1',
+      borderRadius: 4
     }]
   }
 
   const genreChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      y: {
+        ticks: {
+          display: true
+        }
+      },
+      x: {
+        ticks: {
+          display: true
+        }
+      }
+    },
     onClick: (_: ChartEvent, elements: ActiveElement[]) => {
       if (elements.length > 0) {
         const index = elements[0].index
-        const genres = Object.keys(bookStats.genreCount)
-        const genre = genres[index]
+        const genre = sortedGenres[index]?.[0]
         if (genre) {
           navigateToBooks({ genre })
         }

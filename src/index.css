@@ -831,7 +831,9 @@ body {
 }
 
 .chart-card__body {
-  min-height: 200px;
+  max-height: 300px;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .chart-card__body canvas {
@@ -855,8 +857,8 @@ body {
 .rating-chart {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 8px 0;
+  gap: 8px;
+  padding: 8px 0 0 0;
 }
 
 .rating-chart__row {
