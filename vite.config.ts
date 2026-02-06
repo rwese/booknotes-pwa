@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 
 // Cache busting version - update this when breaking changes require cache invalidation
-const CACHE_BUST_VERSION = '1.0.1'
+const CACHE_BUST_VERSION = '0.2.0'
 
 // https://vite.dev/config/
 export default defineConfig({
