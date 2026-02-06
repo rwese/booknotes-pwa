@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { useBookBySlug, useDeleteBook } from '../../hooks/useBooks'
 import { noteRepository } from '../../db/repositories/noteRepository'
@@ -49,16 +49,49 @@ export function BookDetail() {
   // If we resolved a legacy UUID, use that ID for operations
   const effectiveBookId = bookId || (book ? book.id : undefined)
 
-  const coverData = book?.coverThumbnailData || book?.coverImageData
-  const coverUrl = useMemo(() => {
-    return coverData ? URL.createObjectURL(coverData) : null
-  }, [coverData])
+  // Use ref to track cover URL and only create/revoke when necessary
+  const coverUrlRef = useRef<string | null>(null)
+  const [coverUrl, setCoverUrl] = useState<string | null>(null)
 
+  // Create blob URL from cover data, only when data actually changes
+  useEffect(() => {
+    const coverData = book?.coverThumbnailData || book?.coverImageData
+    
+    if (!coverData) {
+      // No cover data - revoke existing URL if any
+      if (coverUrlRef.current) {
+        URL.revokeObjectURL(coverUrlRef.current)
+        coverUrlRef.current = null
+      }
+      setCoverUrl(null)
+      return
+    }
+
+    // Create new blob URL
+    const newUrl = URL.createObjectURL(coverData)
+    
+    // Revoke old URL after a delay to allow image to load with new URL
+    const oldUrl = coverUrlRef.current
+    coverUrlRef.current = newUrl
+    setCoverUrl(newUrl)
+
+    // Cleanup: revoke the old URL after giving time for the new one to be used
+    if (oldUrl) {
+      const timeoutId = setTimeout(() => {
+        URL.revokeObjectURL(oldUrl)
+      }, 100)
+      return () => clearTimeout(timeoutId)
+    }
+  }, [book?.coverThumbnailData, book?.coverImageData])
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
-      if (coverUrl) URL.revokeObjectURL(coverUrl)
+      if (coverUrlRef.current) {
+        URL.revokeObjectURL(coverUrlRef.current)
+      }
     }
-  }, [coverUrl])
+  }, [])
 
   if (isLoading) {
     return (

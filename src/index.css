@@ -544,6 +544,40 @@ body {
   background-color: var(--app-primary);
 }
 
+/* Status Buttons */
+.status-buttons {
+  display: flex;
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.status-buttons__btn {
+  flex: 1;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--app-border);
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--app-text);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.status-buttons__btn:last-child {
+  border-right: none;
+}
+
+.status-buttons__btn:hover:not(.status-buttons__btn--active) {
+  background-color: var(--app-surface);
+}
+
+.status-buttons__btn--active {
+  background-color: var(--app-primary);
+  color: white;
+}
+
 /* --------------------------------------------
    Book Grid
    -------------------------------------------- */

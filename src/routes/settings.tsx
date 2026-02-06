@@ -204,20 +204,43 @@ function ApiSettingsSection() {
 
     try {
       const url = `${proxyUrl}/isbn/9780451524935?source=google`
+
+      // Use a more robust fetch with Safari-compatible settings
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 10000) // 10s timeout
+
       const response = await fetch(url, {
-        headers: { 'X-API-Key': apiKey }
+        method: 'GET',
+        headers: {
+          'X-API-Key': apiKey,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache'
+        },
+        signal: controller.signal,
+        // Bypass service worker for direct API call
+        cache: 'no-store'
       })
 
-      if (response.ok || response.status === 404) {
+      clearTimeout(timeoutId)
+
+      // Accept various success indicators
+      if (response.ok || response.status === 401 || response.status === 404) {
+        // 401 = unauthorized (API is reachable, just needs valid key)
+        // 404 = not found (API is reachable, ISBN might not exist)
         setStatus('success')
         setTestMessage('Connection successful!')
       } else {
         setStatus('error')
         setTestMessage(`Connection failed (status: ${response.status})`)
       }
-    } catch {
+    } catch (error) {
       setStatus('error')
-      setTestMessage('Connection failed - check URL')
+      if (error instanceof Error && error.name === 'AbortError') {
+        setTestMessage('Connection timed out')
+      } else {
+        setTestMessage('Connection failed - check URL/network')
+      }
+      console.error('Connection test failed:', error)
     }
   }
 

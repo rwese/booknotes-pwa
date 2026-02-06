@@ -19,14 +19,25 @@ export default defineConfig({
       manifest: {
         name: 'BookNotes',
         short_name: 'BookNotes',
-        description: 'Manage your personal book collection',
-        theme_color: '#0ea5e9',
-        background_color: '#ffffff',
+        description: 'Track your book reading progress',
+        theme_color: '#1a1a2e',
+        background_color: '#1a1a2e',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
         icons: [
+          {
+            src: '/icons/apple-icon-180.png',
+            sizes: '180x180',
+            type: 'image/png',
+            purpose: 'any'
+          },
+          {
+            src: '/icons/favicon-196.png',
+            sizes: '196x196',
+            type: 'image/png'
+          },
           {
             src: '/icons/favicon-32.png',
             sizes: '32x32',
@@ -35,11 +46,6 @@ export default defineConfig({
           {
             src: '/icons/favicon-16.png',
             sizes: '16x16',
-            type: 'image/png'
-          },
-          {
-            src: '/icons/favicon-196.png',
-            sizes: '196x196',
             type: 'image/png'
           },
           {

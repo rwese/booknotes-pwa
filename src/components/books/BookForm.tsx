@@ -6,7 +6,7 @@ import { useBookBySlug, useCreateBook, useUpdateBook, useAuthors, usePublishers,
 import { isbnService } from '../../services/isbnService'
 import { coverImageService } from '../../services/coverImageService'
 import { bookRepository } from '../../db/repositories/bookRepository'
-import { isUUID, generateBookSlug } from '../../utils/slug'
+import { isUUID } from '../../utils/slug'
 import { AutocompleteInput } from '../ui/AutocompleteInput'
 import { TagsInput } from '../ui/TagsInput'
 import type { BookFormData, ReadingStatus } from '../../types'
@@ -82,15 +82,15 @@ export function BookForm({ mode }: BookFormProps) {
     tags: [],
     purchaseDate: '',
     purchasePrice: undefined,
-    customNotes: ''
+    customNotes: '',
+    coverImageData: undefined,
+    coverThumbnailData: undefined
   })
 
-  const [coverImage, setCoverImage] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
   const [isLookingUpISBN, setIsLookingUpISBN] = useState(false)
   const [isbnLookupError, setIsbnLookupError] = useState<string | null>(null)
   const [coverUrl, setCoverUrl] = useState<string | null>(null)
   const [initialFormData, setInitialFormData] = useState<BookFormData | null>(null)
-  const [initialCover, setInitialCover] = useState<{ image: Blob; thumbnail: Blob } | null>(null)
 
   // Crop modal state
   const [showCropModal, setShowCropModal] = useState(false)
@@ -114,11 +114,10 @@ export function BookForm({ mode }: BookFormProps) {
       formData.readingStatus !== initialFormData.readingStatus ||
       formData.rating !== initialFormData.rating ||
       formData.tags.join(',') !== initialFormData.tags.join(',') ||
-      formData.customNotes !== initialFormData.customNotes
+      formData.customNotes !== initialFormData.customNotes ||
+      formData.coverImageData !== initialFormData.coverImageData
 
-    const coverChanged = !!(coverImage && !initialCover)
-
-    return dataChanged || coverChanged
+    return dataChanged
   })()
 
   const handleGoBack = () => {
@@ -132,13 +131,15 @@ export function BookForm({ mode }: BookFormProps) {
   }
 
   useEffect(() => {
-    if (coverImage) {
-      const url = URL.createObjectURL(coverImage.thumbnail)
+    const blob = formData.coverThumbnailData || formData.coverImageData
+    if (blob) {
+      const url = URL.createObjectURL(blob)
       setCoverUrl(url)
       return () => URL.revokeObjectURL(url)
     }
+    setCoverUrl(null)
     return undefined
-  }, [coverImage])
+  }, [formData.coverThumbnailData, formData.coverImageData])
 
   const [isbnProcessed, setIsbnProcessed] = useState(false)
   useEffect(() => {
@@ -171,18 +172,12 @@ export function BookForm({ mode }: BookFormProps) {
         tags: existingBook.tags,
         purchaseDate: existingBook.purchaseDate || '',
         purchasePrice: existingBook.purchasePrice,
-        customNotes: existingBook.customNotes || ''
+        customNotes: existingBook.customNotes || '',
+        coverImageData: existingBook.coverImageData,
+        coverThumbnailData: existingBook.coverThumbnailData
       }
       setFormData(initialData)
       setInitialFormData(initialData)
-      if (existingBook.coverImageData) {
-        const coverData = {
-          image: existingBook.coverImageData,
-          thumbnail: existingBook.coverThumbnailData || existingBook.coverImageData
-        }
-        setCoverImage(coverData)
-        setInitialCover(coverData)
-      }
     }
   }, [mode, existingBook, formInitialized])
 
@@ -210,10 +205,8 @@ export function BookForm({ mode }: BookFormProps) {
       }))
 
       if (result.coverImageData) {
-        setCoverImage({
-          image: result.coverImageData,
-          thumbnail: result.coverThumbnailData || result.coverImageData
-        })
+        updateField('coverImageData', result.coverImageData)
+        updateField('coverThumbnailData', result.coverThumbnailData || result.coverImageData)
       }
     } catch {
       setIsbnLookupError('Book not found for this ISBN. Please enter details manually.')
@@ -285,7 +278,8 @@ export function BookForm({ mode }: BookFormProps) {
       // Process with crop coordinates
       const processed = await coverImageService.processImage(file, cropRect)
 
-      setCoverImage({ image: processed.fullImage, thumbnail: processed.thumbnail })
+      updateField('coverImageData', processed.fullImage)
+      updateField('coverThumbnailData', processed.thumbnail)
       setShowCropModal(false)
       setCropImageSrc(null)
       setCropArea(null)
@@ -308,8 +302,6 @@ export function BookForm({ mode }: BookFormProps) {
     const bookData = {
       ...formData,
       authorSortName: formData.author,
-      coverImageData: coverImage?.image || (mode === 'edit' ? existingBook?.coverImageData : undefined),
-      coverThumbnailData: coverImage?.thumbnail || (mode === 'edit' ? existingBook?.coverThumbnailData : undefined),
       tags: formData.tags.filter(Boolean),
       readingSessionIds: [] as string[]
     }
@@ -325,9 +317,13 @@ export function BookForm({ mode }: BookFormProps) {
           await bookRepository.updateSlug(bookId, formData.title, formData.isbn)
         }
 
-        // Navigate to the book's slug URL (generate new slug for redirect)
-        const newSlug = generateBookSlug(formData.title, formData.isbn)
-        navigate({ to: '/books/$bookSlug', params: { bookSlug: newSlug } })
+        // Force refetch the book data to ensure fresh Blob references
+        const freshBook = await bookRepository.getById(bookId)
+        if (freshBook) {
+          navigate({ to: '/books/$bookSlug', params: { bookSlug: freshBook.slug } })
+        } else {
+          navigate({ to: '/books' })
+        }
       } else {
         const newBookId = await createBook.mutateAsync(bookData)
         // Get the created book to get its slug
@@ -374,13 +370,31 @@ export function BookForm({ mode }: BookFormProps) {
             style={{ display: 'none' }}
           />
           {coverUrl ? (
-            <img
-              src={coverUrl}
-              alt="Cover"
-              className="form__cover-preview"
-              onClick={handleCoverClick}
-              style={{ cursor: 'pointer' }}
-            />
+            <>
+              <div
+                className="form__cover-preview"
+                onClick={handleCoverClick}
+                onKeyDown={(e) => e.key === 'Enter' && handleCoverClick()}
+                role="button"
+                tabIndex={0}
+                style={{ cursor: 'pointer' }}
+              >
+                <img src={coverUrl} alt="Book cover" />
+              </div>
+              {mode === 'edit' && (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    updateField('coverImageData', undefined)
+                    updateField('coverThumbnailData', undefined)
+                  }}
+                  style={{ marginTop: 8 }}
+                >
+                  Remove Cover
+                </button>
+              )}
+            </>
           ) : (
             <div className="form__cover-upload" onClick={handleCoverClick}>
               <svg className="form__cover-upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -532,19 +546,24 @@ export function BookForm({ mode }: BookFormProps) {
 
         <div className="form__row">
           <div className="form__group">
-            <label className="form__label">Status</label>
-            <select
-              value={formData.readingStatus || ''}
-              onChange={(e) => updateField('readingStatus', e.target.value as ReadingStatus || undefined)}
-              className="form-input"
+            <label className="form__label" id="status-label">Status</label>
+            <div
+              className="status-buttons"
+              role="group"
+              aria-labelledby="status-label"
             >
-              <option value="">Select status</option>
               {readingStatuses.map((status) => (
-                <option key={status} value={status}>
+                <button
+                  key={status}
+                  type="button"
+                  className={`status-buttons__btn ${formData.readingStatus === status ? 'status-buttons__btn--active' : ''}`}
+                  onClick={() => updateField('readingStatus', formData.readingStatus === status ? undefined : status)}
+                  aria-pressed={formData.readingStatus === status}
+                >
                   {status === 'wantToRead' ? 'Want to Read' : status === 'currentlyReading' ? 'Currently Reading' : 'Read'}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </div>
 
           <div className="form__group">

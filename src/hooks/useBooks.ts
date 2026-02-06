@@ -14,7 +14,8 @@ export function useBook(id: string) {
   return useQuery({
     queryKey: ['book', id],
     queryFn: () => bookRepository.getById(id),
-    enabled: !!id
+    enabled: !!id,
+    refetchOnWindowFocus: false
   })
 }
 
@@ -22,7 +23,8 @@ export function useBookBySlug(slug: string) {
   return useQuery({
     queryKey: ['book', 'slug', slug],
     queryFn: () => bookRepository.getBySlug(slug),
-    enabled: !!slug
+    enabled: !!slug,
+    refetchOnWindowFocus: false
   })
 }
 
@@ -95,10 +97,12 @@ export function useUpdateBook() {
   return useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<Book> }) =>
       bookRepository.update(id, updates),
-    onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: ['books'] })
-      queryClient.invalidateQueries({ queryKey: ['book', id] })
-      queryClient.invalidateQueries({ queryKey: ['statistics'] })
+    onSuccess: async (_, { id }) => {
+      await queryClient.invalidateQueries({ queryKey: ['books'] })
+      await queryClient.invalidateQueries({ queryKey: ['book', id] })
+      // Also invalidate by slug in case slug changed
+      await queryClient.invalidateQueries({ queryKey: ['book', 'slug'] })
+      await queryClient.invalidateQueries({ queryKey: ['statistics'] })
     }
   })
 }

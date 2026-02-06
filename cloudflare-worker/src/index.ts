@@ -56,7 +56,19 @@ export default {
 function isAllowedOrigin(origin: string): boolean {
   try {
     const url = new URL(origin)
-    return url.hostname.endsWith('.nope.at') || url.hostname === 'nope.at'
+    // Allow nope.at domains and GitHub Pages deployments
+    if (url.hostname.endsWith('.nope.at') || url.hostname === 'nope.at') {
+      return true
+    }
+    // Allow github.io domains (user.github.io or organization.github.io)
+    if (url.hostname.endsWith('.github.io') || url.hostname === 'github.io') {
+      return true
+    }
+    // Allow localhost for development
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return true
+    }
+    return false
   } catch {
     return false
   }
