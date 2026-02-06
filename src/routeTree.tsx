@@ -7,7 +7,7 @@ import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { BooksIndex } from './routes/books'
 
-const BASE = '/booky'
+const BASE = '/booknotes-pwa'
 
 // Root layout route
 const RootRoute = createRootRoute({
