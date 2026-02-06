@@ -7,6 +7,7 @@ import { ViewToggle } from '../../components/ui/ViewToggle'
 import { FilterToggle } from '../../components/ui/FilterToggle'
 import { SortToggle, type SortOption } from '../../components/ui/SortToggle'
 import { BookGridCard } from '../../components/books/BookGridCard'
+import '../../components/books/BookList.css'
 import type { Book } from '../../types'
 
 export function BooksIndex() {
