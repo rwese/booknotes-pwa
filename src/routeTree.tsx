@@ -87,10 +87,7 @@ const routeTree = RootRoute.addChildren([
 
 export const router = createRouter({
   routeTree,
-  // Strip base path from location for matching
-  context: {
-    basepath: BASE
-  }
+  basepath: BASE
 })
 
 declare module '@tanstack/react-router' {
