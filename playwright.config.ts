@@ -8,7 +8,7 @@ export default defineConfig({
   workers: 1,
   reporter: 'list',
   use: {
-    baseURL: 'http://localhost:5179/booknotes-pwa',
+    baseURL: 'http://localhost:5180/booknotes-pwa',
     trace: 'on-first-retry',
     headless: true,
   },
