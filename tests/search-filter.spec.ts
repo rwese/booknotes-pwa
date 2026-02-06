@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Search and Filter', () => {
   test.beforeEach(async ({ page }) => {
     // Clear IndexedDB before each test
-    await page.goto('/settings')
+    await page.goto('/booknotes-pwa/settings')
     await page.evaluate(async () => {
       const dbs = await indexedDB.databases()
       for (const db of dbs) {
@@ -14,7 +14,7 @@ test.describe('Search and Filter', () => {
     await page.waitForLoadState('networkidle')
 
     // Create test books
-    await page.goto('/books/new')
+    await page.goto('/booknotes-pwa/books/new')
     await page.waitForLoadState('networkidle')
 
     // Create book 1

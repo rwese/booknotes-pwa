@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Book CRUD Operations', () => {
   test.beforeEach(async ({ page }) => {
     // Clear IndexedDB before each test
-    await page.goto('/settings')
+    await page.goto('/booknotes-pwa/settings')
     await page.evaluate(async () => {
       const dbs = await indexedDB.databases()
       for (const db of dbs) {
@@ -16,7 +16,7 @@ test.describe('Book CRUD Operations', () => {
 
   test.describe('Create Book', () => {
     test('can create a new book with manual entry', async ({ page }) => {
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
 
       // Fill in book details
@@ -36,7 +36,7 @@ test.describe('Book CRUD Operations', () => {
     })
 
     test('shows validation errors for empty required fields', async ({ page }) => {
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
 
       // Try to submit without filling required fields
@@ -50,7 +50,7 @@ test.describe('Book CRUD Operations', () => {
   test.describe('Edit Book', () => {
     test('can edit an existing book', async ({ page }) => {
       // First create a book
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
       await page.fill('input[placeholder="Book title"]', 'Original Title')
       await page.fill('input[placeholder="Author name"]', 'Original Author')
@@ -72,7 +72,7 @@ test.describe('Book CRUD Operations', () => {
 
     test('can update reading status', async ({ page }) => {
       // Create a book first
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
       await page.fill('input[placeholder="Book title"]', 'Status Test Book')
       await page.fill('input[placeholder="Author name"]', 'Test Author')
@@ -99,7 +99,7 @@ test.describe('Book CRUD Operations', () => {
   test.describe('Delete Book', () => {
     test('can delete a book', async ({ page }) => {
       // Create a book first
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
       await page.fill('input[placeholder="Book title"]', 'Book to Delete')
       await page.fill('input[placeholder="Author name"]', 'Test Author')
@@ -126,7 +126,7 @@ test.describe('Book CRUD Operations', () => {
 
     test('can cancel delete confirmation', async ({ page }) => {
       // Create a book first
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
       await page.fill('input[placeholder="Book title"]', 'Book Not To Delete')
       await page.fill('input[placeholder="Author name"]', 'Test Author')
@@ -151,7 +151,7 @@ test.describe('Book CRUD Operations', () => {
   test.describe('Book Detail Page', () => {
     test('displays all book information', async ({ page }) => {
       // Create a book with all fields
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
       await page.fill('input[placeholder="Book title"]', 'Complete Book Info')
       await page.fill('input[placeholder="Author name"]', 'Full Name')
@@ -172,7 +172,7 @@ test.describe('Book CRUD Operations', () => {
 
     test('has navigation back to books list', async ({ page }) => {
       // Create a book
-      await page.goto('/books/new')
+      await page.goto('/booknotes-pwa/books/new')
       await page.waitForLoadState('networkidle')
       await page.fill('input[placeholder="Book title"]', 'Navigation Test')
       await page.fill('input[placeholder="Author name"]', 'Test Author')
