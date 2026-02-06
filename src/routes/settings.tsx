@@ -94,14 +94,16 @@ export function SettingsPage() {
         </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
           <button
-            className="btn btn-primary"
+            type="button"
+            className="btn btn--primary"
             onClick={handleExportJSON}
             disabled={isExporting}
           >
             {isExporting ? 'Exporting...' : 'Export JSON'}
           </button>
           <button
-            className="btn btn-secondary"
+            type="button"
+            className="btn btn--secondary"
             onClick={handleExportZIP}
             disabled={isExporting}
           >
@@ -139,7 +141,8 @@ export function SettingsPage() {
         )}
 
         <button
-          className="btn btn-primary"
+          type="button"
+          className="btn btn--primary"
           onClick={handleImportClick}
           disabled={!selectedFile || isImporting}
           style={{ marginTop: 8 }}
@@ -166,7 +169,7 @@ export function SettingsPage() {
               </ul>
             </div>
           )}
-          <button className="btn btn-secondary" onClick={() => setImportResult(null)}>
+          <button type="button" className="btn btn--secondary" onClick={() => setImportResult(null)}>
             Dismiss
           </button>
         </div>
@@ -183,8 +186,8 @@ export function SettingsPage() {
               Strategy: <strong>{importStrategy}</strong>
             </p>
             <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
-              <button className="btn btn-primary" onClick={confirmImport}>Import</button>
-              <button className="btn btn-secondary" onClick={() => setShowImportConfirm(false)}>Cancel</button>
+              <button type="button" className="btn btn--primary" onClick={confirmImport}>Import</button>
+              <button type="button" className="btn btn--secondary" onClick={() => setShowImportConfirm(false)}>Cancel</button>
             </div>
           </div>
         </div>
@@ -260,10 +263,10 @@ function ApiSettingsSection() {
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 8, alignItems: 'center' }}>
-        <button className="btn btn-secondary" onClick={testConnection} disabled={status === 'testing'}>
+        <button type="button" className="btn btn--secondary" onClick={testConnection} disabled={status === 'testing'}>
           {status === 'testing' ? 'Testing...' : 'Test Connection'}
         </button>
-        <button className="btn btn-secondary" onClick={resetToDefaults}>
+        <button type="button" className="btn btn--secondary" onClick={resetToDefaults}>
           Reset to Default
         </button>
       </div>

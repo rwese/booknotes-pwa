@@ -7,6 +7,8 @@ import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { BooksIndex } from './routes/books'
 
+const BASE = '/booky'
+
 // Root layout route
 const RootRoute = createRootRoute({
   component: () => (
@@ -83,7 +85,13 @@ const routeTree = RootRoute.addChildren([
   settingsRoute
 ])
 
-export const router = createRouter({ routeTree })
+export const router = createRouter({
+  routeTree,
+  // Strip base path from location for matching
+  context: {
+    basepath: BASE
+  }
+})
 
 declare module '@tanstack/react-router' {
   interface Register {

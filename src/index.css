@@ -112,6 +112,37 @@ body {
   transition: all 0.2s;
 }
 
+.btn--primary {
+  background-color: var(--app-primary);
+  color: white;
+  border: none;
+}
+
+.btn--primary:hover {
+  background-color: #0284c7;
+}
+
+.btn--secondary {
+  background-color: transparent;
+  color: var(--app-text);
+  border: 1px solid var(--app-border);
+}
+
+.btn--secondary:hover {
+  background-color: var(--app-surface);
+}
+
+.btn--danger {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+}
+
+.btn--danger:hover {
+  background-color: #dc2626;
+}
+
+/* Legacy button class aliases for backward compatibility */
 .btn-primary {
   background-color: var(--app-primary);
   color: white;
@@ -150,7 +181,15 @@ body {
   overflow: hidden;
 }
 
-/* Book card */
+/* Legacy card class for backward compatibility */
+.card {
+  background-color: var(--app-background);
+  border: 1px solid var(--app-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+/* Book card legacy styles */
 .book-card {
   display: flex;
   gap: 12px;
@@ -213,6 +252,30 @@ body {
   color: #16a34a;
 }
 
+/* BEM Status Badge Classes */
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge--status-want {
+  background-color: #f1f5f9;
+  color: #475569;
+}
+
+.badge--status-reading {
+  background-color: #dbeafe;
+  color: #1d4ed8;
+}
+
+.badge--status-read {
+  background-color: #dcfce7;
+  color: #16a34a;
+}
+
 /* Rating stars */
 .star-rating {
   display: flex;
@@ -229,6 +292,10 @@ body {
   color: #e2e8f0;
 }
 
+.star--empty {
+  color: #e2e8f0;
+}
+
 /* Modal styles */
 .modal-overlay {
   position: fixed;
@@ -240,7 +307,26 @@ body {
   z-index: 50;
 }
 
+.modal__overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
 .modal-content {
+  background-color: var(--app-background);
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal__content {
   background-color: var(--app-background);
   border-radius: 16px;
   padding: 20px;
