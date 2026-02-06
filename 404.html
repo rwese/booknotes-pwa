@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>BookNotes - Redirecting...</title>
+  <script>
+    // Store the original path
+    var path = window.location.pathname;
+    
+    // If we're already on the right path, just load the app
+    if (path === '/' || path === '/booknotes-pwa/') {
+      window.location.href = '/booknotes-pwa/';
+    } else {
+      // Redirect to the app with the original path as hash
+      window.location.href = '/booknotes-pwa/' + window.location.hash;
+    }
+  </script>
+</head>
+<body>
+  <p>Redirecting to BookNotes...</p>
+</body>
+</html>
