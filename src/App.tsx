@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from '@tanstack/react-router'
+import { BASE_PATH } from './routeTree'
 
 
 function TabBar() {
