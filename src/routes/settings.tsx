@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { exportService, type ImportStrategy } from '../services/exportService'
 import { useApiSettings } from '../hooks/useApiSettings'
+import {
+  fullCacheInvalidation,
+  partialCacheInvalidation,
+  checkForUpdates,
+  registerServiceWorker
+} from '../utils/cacheInvalidation'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
@@ -179,6 +185,50 @@ export function SettingsPage() {
           </div>
         </div>
       )}
+
+      {/* Cache Management Section */}
+      <div className="card p-4 mb-4">
+        <h3 className="m-0 mb-4">Cache Management</h3>
+        <p className="text-sm text-[var(--text-primary)] opacity-60 mb-4">
+          Clear cached data to fix update issues. Use "Clear App Data" for complete reset.
+        </p>
+
+        <div className="flex gap-3 flex-wrap mb-4">
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={async () => {
+              const hasUpdate = await checkForUpdates()
+              if (!hasUpdate) {
+                await registerServiceWorker()
+              }
+            }}
+          >
+            Check for Updates
+          </button>
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={async () => {
+              await partialCacheInvalidation()
+            }}
+          >
+            Clear Runtime Cache
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="btn btn--warning"
+          onClick={async () => {
+            if (confirm('This will clear all cached data and reload the app. Your books will be preserved. Continue?')) {
+              await partialCacheInvalidation()
+            }
+          }}
+        >
+          Clear App Data
+        </button>
+      </div>
 
       {/* About Section */}
       <div className="card p-4 mt-6">

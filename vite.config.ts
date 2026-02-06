@@ -4,14 +4,27 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 
+// Cache busting version - update this when breaking changes require cache invalidation
+const CACHE_BUST_VERSION = '1.0.1'
+
 // https://vite.dev/config/
 export default defineConfig({
   base: isGitHubPages ? '/booknotes-pwa/' : './',
+  build: {
+    // Content hashing for cache busting
+    rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]'
+      }
+    }
+  },
   plugins: [
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icons/*.png', 'icons/*.svg'], // Relative path - Vite will prefix with base
+      includeAssets: ['icons/*.png', 'icons/*.svg'],
       injectManifest: undefined,
       devOptions: {
         enabled: false
@@ -26,6 +39,7 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
+        version: CACHE_BUST_VERSION, // Version for cache busting
         icons: [
           {
             src: 'icons/apple-icon-180.png',
@@ -75,8 +89,43 @@ export default defineConfig({
         ]
       },
       workbox: {
+        // Aggressive cache cleanup on update
+        cleanupOutdatedCaches: true,
+        // Skip waiting to activate new service worker immediately
+        skipWaiting: true,
+        // Claim clients to start controlling pages immediately
+        clientsClaim: true,
+        // Navigate fallback for offline support
+        navigateFallback: '/404.html',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
+          // API responses - StaleWhileRevalidate for fresh data
+          {
+            urlPattern: /^https:\/\/api\.openlibrary\.org\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'api-responses',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            urlPattern: /^https:\/\/booknotes-api\..*\.workers\.dev\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'booknotes-api',
+              expiration: {
+                maxEntries: 30,
+                maxAgeSeconds: 60 * 60 * 24 // 1 day
+              }
+            }
+          },
+          // Existing image caching
           {
             urlPattern: /^https:\/\/covers\.openlibrary\.org\/.*/i,
             handler: 'CacheFirst',
