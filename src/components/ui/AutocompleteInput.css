@@ -11,8 +11,8 @@
   right: 0;
   margin: 4px 0 0 0;
   padding: 4px 0;
-  background-color: var(--surface-primary);
-  border: 1px solid var(--border);
+  background-color: var(--app-surface-primary);
+  border: 1px solid var(--app-border);
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   list-style: none;
@@ -31,16 +31,16 @@
   padding: 10px 12px;
   cursor: pointer;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--app-text-primary);
   transition: background-color 0.1s;
 }
 
 .autocomplete__item:hover,
 .autocomplete__item--highlighted {
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
 }
 
 .autocomplete__item--highlighted {
-  background-color: var(--primary);
+  background-color: var(--app-primary);
   color: white;
 }

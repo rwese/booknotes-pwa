@@ -1,7 +1,7 @@
 /* BookList component styles */
 .book-list {
-  background-color: var(--surface-primary);
-  border: 1px solid var(--border);
+  background-color: var(--app-surface-primary);
+  border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   overflow: hidden;
 }
@@ -10,7 +10,7 @@
   display: flex;
   gap: 12px;
   padding: 12px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--app-border);
   cursor: pointer;
   transition: background-color 0.2s;
 }
@@ -20,7 +20,7 @@
 }
 
 .book-list-item:hover {
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
 }
 
 .book-list-item__cover {
@@ -29,14 +29,14 @@
   border-radius: 4px;
   object-fit: cover;
   flex-shrink: 0;
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
 }
 
 .book-list-item__cover--placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--border);
+  color: var(--app-border);
 }
 
 .book-list-item__content {
@@ -83,7 +83,7 @@
 
 .book-list-item__row2 {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -107,7 +107,7 @@
   font-weight: 600;
   cursor: pointer;
   user-select: none;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .book-table td {

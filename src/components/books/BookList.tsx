@@ -141,7 +141,7 @@ export function BookList({ books, onBookClick }: BookListProps) {
 
       <div className="book-table w-full border-collapse">
         {table.getHeaderGroups().map((headerGroup) => (
-          <tr key={headerGroup.id} className="border-b border-[var(--border)]">
+          <tr key={headerGroup.id} className="border-b border-[var(--app-border)]">
             {headerGroup.headers.map((header) => (
               <th
                 key={header.id}

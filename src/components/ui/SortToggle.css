@@ -13,8 +13,8 @@
   right: 0;
   margin-top: 4px;
   min-width: 160px;
-  background-color: var(--surface-primary);
-  border: 1px solid var(--border);
+  background-color: var(--app-surface-primary);
+  border: 1px solid var(--app-border);
   border-radius: 0.5rem;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 4px 0;
@@ -37,39 +37,39 @@
   border: none;
   text-align: left;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--app-text-primary);
   cursor: pointer;
   transition: background-color 0.1s;
 }
 
 .sort-dropdown__item:hover {
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
 }
 
 .sort-dropdown__item--active {
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
   font-weight: 500;
 }
 
 .sort-dropdown__check {
-  color: var(--primary);
+  color: var(--app-primary);
 }
 
 .sort-dropdown__divider {
   height: 1px;
-  background-color: var(--border);
+  background-color: var(--app-border);
   margin: 4px 0;
 }
 
 .sort-dropdown__arrow-icon {
   margin-left: 4px;
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
 }
 
 /* Status buttons (shared with FilterToggle styles) */
 .status-buttons {
   display: flex;
-  border: 1px solid var(--border);
+  border: 1px solid var(--app-border);
   border-radius: 0.5rem;
   overflow: hidden;
 }
@@ -79,10 +79,10 @@
   padding: 10px 12px;
   background: transparent;
   border: none;
-  border-right: 1px solid var(--border);
+  border-right: 1px solid var(--app-border);
   cursor: pointer;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--app-text-primary);
   transition: all 0.2s;
   white-space: nowrap;
 }
@@ -92,10 +92,10 @@
 }
 
 .status-buttons__btn:hover:not(.status-buttons__btn--active) {
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
 }
 
 .status-buttons__btn--active {
-  background-color: var(--primary);
+  background-color: var(--app-primary);
   color: white;
 }

@@ -1,7 +1,7 @@
 /* BookGridCard component styles */
 .book-card--grid {
-  background-color: var(--surface-primary);
-  border: 1px solid var(--border);
+  background-color: var(--app-surface-primary);
+  border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   overflow: hidden;
   cursor: pointer;
@@ -23,7 +23,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 2 / 3;
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
   overflow: hidden;
 }
 
@@ -39,7 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--border);
+  color: var(--app-border);
 }
 
 .book-card__body {
@@ -58,7 +58,7 @@
 }
 
 .book-card__author {
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
   font-size: 13px;
   margin: 0 0 8px 0;
   white-space: nowrap;
@@ -88,8 +88,8 @@
   display: flex;
   gap: 12px;
   padding: 12px;
-  background-color: var(--surface-primary);
-  border-bottom: 1px solid var(--border);
+  background-color: var(--app-surface-primary);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .book-card:last-child {
@@ -101,7 +101,7 @@
   height: 90px;
   border-radius: 4px;
   object-fit: cover;
-  background-color: var(--surface-secondary);
+  background-color: var(--app-surface-secondary);
 }
 
 .book-info {
@@ -118,7 +118,7 @@
 }
 
 .book-author {
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
   font-size: 14px;
 }
 
@@ -132,8 +132,8 @@
 }
 
 .status-want-to-read {
-  background-color: var(--surface-tertiary);
-  color: var(--text-secondary);
+  background-color: var(--app-surface-tertiary);
+  color: var(--app-text-secondary);
 }
 
 .status-reading {
@@ -148,7 +148,7 @@
 
 /* Tag badge */
 .badge--tag {
-  background-color: var(--surface-secondary);
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+  background-color: var(--app-surface-secondary);
+  color: var(--app-text-primary);
+  border: 1px solid var(--app-border);
 }

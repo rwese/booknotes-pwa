@@ -6,8 +6,8 @@
 }
 
 .form__section {
-  background-color: var(--surface-secondary);
-  border: 1px solid var(--border);
+  background-color: var(--app-surface-secondary);
+  border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   padding: 1.25rem;
   margin-bottom: 1.25rem;
@@ -19,20 +19,20 @@
   gap: 8px;
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--app-border);
 }
 
 .form__section-icon {
   width: 20px;
   height: 20px;
-  color: var(--primary);
+  color: var(--app-primary);
 }
 
 .form__section-title {
   font-size: 16px;
   font-weight: 600;
   margin: 0;
-  color: var(--text-primary);
+  color: var(--app-text-primary);
 }
 
 .form__row {
@@ -54,12 +54,12 @@
   font-weight: 500;
   margin-bottom: 6px;
   font-size: 14px;
-  color: var(--text-primary);
+  color: var(--app-text-primary);
 }
 
 .form__hint {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
   margin-top: 4px;
 }
 
@@ -83,7 +83,7 @@
 .form__cover-upload {
   width: 120px;
   height: 180px;
-  border: 2px dashed var(--border);
+  border: 2px dashed var(--app-border);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -95,20 +95,20 @@
 }
 
 .form__cover-upload:hover {
-  border-color: var(--primary);
-  background-color: var(--surface-secondary);
+  border-color: var(--app-primary);
+  background-color: var(--app-surface-secondary);
 }
 
 .form__cover-upload-icon {
   width: 32px;
   height: 32px;
-  color: var(--border);
+  color: var(--app-border);
   margin-bottom: 8px;
 }
 
 .form__cover-upload-text {
   font-size: 12px;
-  color: var(--text-secondary);
+  color: var(--app-text-secondary);
   text-align: center;
 }
 
@@ -122,7 +122,7 @@
   gap: 8px;
   margin-top: 1.5rem;
   padding-top: 1.25rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--app-border);
 }
 
 @media (max-width: 480px) {
@@ -204,8 +204,8 @@
 .filter-bar__clear {
   padding: 10px 16px;
   background-color: transparent;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+  color: var(--app-text-primary);
+  border: 1px solid var(--app-border);
   border-radius: 8px;
   font-size: 14px;
   font-weight: 500;
@@ -214,9 +214,9 @@
 }
 
 .filter-bar__clear:hover {
-  background-color: var(--surface-secondary);
-  border-color: var(--primary);
-  color: var(--primary);
+  background-color: var(--app-surface-secondary);
+  border-color: var(--app-primary);
+  color: var(--app-primary);
 }
 
 @media (max-width: 640px) {

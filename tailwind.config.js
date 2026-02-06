@@ -7,25 +7,25 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Semantic colors mapped to CSS variables
+        // Semantic colors mapped to CSS variables - using app prefix
         primary: {
-          DEFAULT: 'var(--primary)',
-          hover: 'var(--primary-hover)',
+          DEFAULT: 'var(--app-primary)',
+          hover: 'var(--app-primary-hover)',
         },
-        success: 'var(--success)',
-        warning: 'var(--warning)',
-        danger: 'var(--danger)',
+        success: 'var(--app-success)',
+        warning: 'var(--app-warning)',
+        danger: 'var(--app-danger)',
         surface: {
-          primary: 'var(--surface-primary)',
-          secondary: 'var(--surface-secondary)',
-          tertiary: 'var(--surface-tertiary)',
+          primary: 'var(--app-surface-primary)',
+          secondary: 'var(--app-surface-secondary)',
+          tertiary: 'var(--app-surface-tertiary)',
         },
         text: {
-          primary: 'var(--text-primary)',
-          secondary: 'var(--text-secondary)',
-          muted: 'var(--text-muted)',
+          primary: 'var(--app-text-primary)',
+          secondary: 'var(--app-text-secondary)',
+          muted: 'var(--app-text-muted)',
         },
-        border: 'var(--border)',
+        border: 'var(--app-border)',
       },
     },
   },
