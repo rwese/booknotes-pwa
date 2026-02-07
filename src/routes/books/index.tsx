@@ -6,6 +6,7 @@ import { useHashParams } from '../../hooks/useHashParams'
 import { ViewToggle } from '../../components/ui/ViewToggle'
 import { FilterToggle } from '../../components/ui/FilterToggle'
 import { SortToggle, type SortOption } from '../../components/ui/SortToggle'
+import { FilterPanel } from '../../components/ui/FilterPanel'
 import { BookGridCard } from '../../components/books/BookGridCard'
 import '../../components/books/BookList.css'
 import type { Book } from '../../types'
@@ -15,8 +16,8 @@ export function BooksIndex() {
   const { data: books, isLoading, error } = useAllBooks()
   const [globalFilter, setGlobalFilter] = useState('')
   const [viewMode, setViewMode] = useViewPreference('list')
-  const [showFilters, setShowFilters] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const { params, setParams, clearParams } = useHashParams()
   const [sortBy, setSortBy] = useState<SortOption>('title')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -69,29 +70,6 @@ export function BooksIndex() {
   const tagFilter = params.tag || ''
   const ratingFilter = params.rating ? parseInt(params.rating, 10) : 0
 
-  // Get unique genres and tags from books
-  const genres = useMemo(() => {
-    if (!books) return []
-    const genreSet = new Set<string>()
-    books.forEach(book => {
-      if (book.genre) genreSet.add(book.genre)
-    })
-    return Array.from(genreSet).sort()
-  }, [books])
-
-  const tags = useMemo(() => {
-    if (!books) return []
-    const tagSet = new Set<string>()
-    books.forEach(book => {
-      if (book.tags) {
-        book.tags.forEach(tag => tagSet.add(tag))
-      }
-    })
-    return Array.from(tagSet).sort()
-  }, [books])
-
-  const hasActiveFilters = statusFilter !== 'all' || genreFilter || tagFilter || ratingFilter > 0 || globalFilter
-
   // Count active filters for the badge
   const activeFilterCount = useMemo(() => {
     let count = 0
@@ -102,6 +80,32 @@ export function BooksIndex() {
     if (globalFilter) count++
     return count
   }, [statusFilter, genreFilter, tagFilter, ratingFilter, globalFilter])
+
+  // Filter handlers
+  const handleStatusChange = useCallback((status: string) => {
+    setParams({ status: status === 'all' ? '' : status })
+  }, [setParams])
+
+  const handleGenreChange = useCallback((genre: string) => {
+    setParams({ genre })
+  }, [setParams])
+
+  const handleTagChange = useCallback((tag: string) => {
+    setParams({ tag })
+  }, [setParams])
+
+  const handleRatingChange = useCallback((rating: number) => {
+    setParams({ rating: rating === 0 ? '' : rating.toString() })
+  }, [setParams])
+
+  const handleClearFilters = useCallback(() => {
+    clearParams()
+    setGlobalFilter('')
+    setShowFilters(false)
+    // Reset sort to defaults
+    setSortBy('title')
+    setSortOrder('asc')
+  }, [clearParams])
 
   const filteredBooks = useMemo(() => {
     if (!books) return []
@@ -197,7 +201,8 @@ export function BooksIndex() {
   }
 
   return (
-    <div className="books-page p-4">
+    <div className="books-page">
+      <h1 className="sr-only">Books</h1>
       <div className="page-header">
         {showSearch ? (
           <div className="search-input-container">
@@ -236,16 +241,19 @@ export function BooksIndex() {
                 <line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
             </button>
-            <SortToggle
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSortChange={handleSortChange}
-            />
-            <FilterToggle
-              isOpen={showFilters}
-              onToggle={() => setShowFilters(!showFilters)}
-              activeCount={activeFilterCount}
-            />
+            <div className="filter-bar__spacer" />
+            <div className="filter-bar__actions">
+              <SortToggle
+                sortBy={sortBy}
+                sortOrder={sortOrder}
+                onSortChange={handleSortChange}
+              />
+              <FilterToggle
+                isOpen={showFilters}
+                onToggle={() => setShowFilters(!showFilters)}
+                activeCount={activeFilterCount}
+              />
+            </div>
             <ViewToggle viewMode={viewMode} onViewChange={setViewMode} />
           </div>
         )}
@@ -258,67 +266,22 @@ export function BooksIndex() {
         </svg>
       </button>
 
-      <div className={`filter-bar__expandable ${showFilters ? 'filter-bar__expandable--open' : ''}`}>
-        <select
-          value={statusFilter}
-          onChange={(e) => setParams({ status: e.target.value === 'all' ? '' : e.target.value })}
-          className="form-input filter-bar__select"
-        >
-          <option value="all">All Status</option>
-          <option value="wantToRead">Want to Read</option>
-          <option value="currentlyReading">Reading</option>
-          <option value="read">Read</option>
-        </select>
-        <select
-          value={genreFilter}
-          onChange={(e) => setParams({ genre: e.target.value })}
-          className="form-input filter-bar__select"
-        >
-          <option value="">All Genres</option>
-          {genres.map(genre => (
-            <option key={genre} value={genre}>{genre}</option>
-          ))}
-        </select>
-        <select
-          value={tagFilter}
-          onChange={(e) => setParams({ tag: e.target.value })}
-          className="form-input filter-bar__select"
-        >
-          <option value="">All Tags</option>
-          {tags.map(tag => (
-            <option key={tag} value={tag}>{tag}</option>
-          ))}
-        </select>
-        <select
-          value={ratingFilter || ''}
-          onChange={(e) => setParams({ rating: e.target.value })}
-          className="form-input filter-bar__select"
-        >
-          <option value="">All Ratings</option>
-          <option value="5">5 Stars</option>
-          <option value="4">4 Stars</option>
-          <option value="3">3 Stars</option>
-          <option value="2">2 Stars</option>
-          <option value="1">1 Star</option>
-        </select>
-        {hasActiveFilters && (
-          <button
-            type="button"
-            onClick={() => {
-              clearParams()
-              setGlobalFilter('')
-              setShowFilters(false)
-              // Reset sort to defaults
-              setSortBy('title')
-              setSortOrder('asc')
-            }}
-            className="filter-bar__clear"
-            aria-label="Clear all filters"
-          >
-            Clear
-          </button>
-        )}
-      </div>
+      {/* Mobile-friendly filter panel */}
+      <FilterPanel
+        isOpen={showFilters}
+        onClose={() => setShowFilters(false)}
+        books={books || []}
+        statusFilter={statusFilter}
+        genreFilter={genreFilter}
+        tagFilter={tagFilter}
+        ratingFilter={ratingFilter}
+        onStatusChange={handleStatusChange}
+        onGenreChange={handleGenreChange}
+        onTagChange={handleTagChange}
+        onRatingChange={handleRatingChange}
+        onClear={handleClearFilters}
+        activeFilterCount={activeFilterCount}
+      />
 
       {books?.length === 0 ? (
         <div className="empty-state">

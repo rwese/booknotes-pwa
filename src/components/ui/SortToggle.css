@@ -1,75 +1,237 @@
 /* SortToggle component styles */
 .sort-toggle-container {
   position: relative;
+  overflow: visible;
 }
 
 .sort-toggle__arrow {
   margin-left: 4px;
 }
 
-.sort-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
-  min-width: 160px;
-  background-color: var(--app-surface-primary);
-  border: 1px solid var(--app-border);
-  border-radius: 0.5rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 4px 0;
-  z-index: 100;
+/* Sort modal overlay */
+.sort-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  .sort-dropdown {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
-.sort-dropdown__item {
+/* Sort modal - bottom sheet on mobile, centered card on desktop */
+.sort-modal {
+  background-color: var(--app-surface, #ffffff);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  border-radius: 1rem 1rem 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+@media (min-width: 640px) {
+  .sort-modal {
+    position: absolute;
+    top: auto;
+    bottom: auto;
+    right: 0;
+    left: auto;
+    margin-top: 8px;
+    border-radius: 0.75rem;
+    max-height: none;
+    width: auto;
+    min-width: 200px;
+    max-width: 280px;
+    animation: none;
+  }
+
+  .sort-modal-overlay {
+    align-items: flex-start;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Modal header */
+.sort-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--app-border, #e2e8f0);
+  flex-shrink: 0;
+}
+
+.sort-modal__title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--app-text-primary, #0f172a);
+  margin: 0;
+}
+
+.sort-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  color: var(--app-text-secondary, #64748b);
+  transition: background-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sort-modal__close:hover {
+  background-color: var(--app-surface-secondary, #f1f5f9);
+}
+
+@media (min-width: 640px) {
+  .sort-modal__close {
+    display: none;
+  }
+}
+
+/* Modal content */
+.sort-modal__content {
+  padding: 0.5rem 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sort-modal__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 10px 12px;
+  padding: 0.875rem 1.25rem;
   background: none;
   border: none;
   text-align: left;
-  font-size: 14px;
-  color: var(--app-text-primary);
+  font-size: 1rem;
+  color: var(--app-text-primary, #0f172a);
   cursor: pointer;
   transition: background-color 0.1s;
+  min-height: 52px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.sort-dropdown__item:hover {
-  background-color: var(--app-surface-secondary);
+.sort-modal__item:hover,
+.sort-modal__item:focus {
+  background-color: var(--app-surface-secondary, #f1f5f9);
+  outline: none;
 }
 
-.sort-dropdown__item--active {
-  background-color: var(--app-surface-secondary);
+.sort-modal__item:active {
+  background-color: var(--app-border, #e2e8f0);
+}
+
+.sort-modal__item--active {
   font-weight: 500;
 }
 
-.sort-dropdown__check {
-  color: var(--app-primary);
+.sort-modal__item-label {
+  flex: 1;
 }
 
-.sort-dropdown__divider {
+.sort-modal__check {
+  color: var(--app-primary, #3b82f6);
+  flex-shrink: 0;
+}
+
+.sort-modal__arrow-icon {
+  color: var(--app-text-secondary, #64748b);
+  flex-shrink: 0;
+  margin-left: 0.5rem;
+}
+
+.sort-modal__divider {
   height: 1px;
-  background-color: var(--app-border);
-  margin: 4px 0;
+  background-color: var(--app-border, #e2e8f0);
+  margin: 0.5rem 0;
 }
 
-.sort-dropdown__arrow-icon {
-  margin-left: 4px;
-  color: var(--app-text-secondary);
+/* Drag handle for bottom sheet */
+.sort-modal::before {
+  content: '';
+  display: block;
+  width: 40px;
+  height: 4px;
+  background-color: var(--app-border, #cbd5e1);
+  border-radius: 2px;
+  margin: 0.5rem auto;
+}
+
+@media (min-width: 640px) {
+  .sort-modal::before {
+    display: none;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .sort-modal {
+    background-color: var(--app-surface, #1e293b);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+  }
+
+  .sort-modal__title {
+    color: var(--app-text-primary, #f1f5f9);
+  }
+
+  .sort-modal__close:hover {
+    background-color: var(--app-surface-secondary, #334155);
+  }
+
+  .sort-modal__item {
+    color: var(--app-text-primary, #f1f5f9);
+  }
+
+  .sort-modal__item:hover,
+  .sort-modal__item:focus {
+    background-color: var(--app-surface-secondary, #334155);
+  }
+
+  .sort-modal__item:active {
+    background-color: var(--app-border, #475569);
+  }
+
+  .sort-modal__divider {
+    background-color: var(--app-border, #475569);
+  }
+
+  .sort-modal::before {
+    background-color: var(--app-border, #64748b);
+  }
 }
 
 /* Status buttons (shared with FilterToggle styles) */
 .status-buttons {
   display: flex;
-  border: 1px solid var(--app-border);
+  border: 1px solid var(--app-border, #e2e8f0);
   border-radius: 0.5rem;
   overflow: hidden;
 }
@@ -79,10 +241,10 @@
   padding: 10px 12px;
   background: transparent;
   border: none;
-  border-right: 1px solid var(--app-border);
+  border-right: 1px solid var(--app-border, #e2e8f0);
   cursor: pointer;
   font-size: 14px;
-  color: var(--app-text-primary);
+  color: var(--app-text-primary, #0f172a);
   transition: all 0.2s;
   white-space: nowrap;
 }
@@ -92,10 +254,10 @@
 }
 
 .status-buttons__btn:hover:not(.status-buttons__btn--active) {
-  background-color: var(--app-surface-secondary);
+  background-color: var(--app-surface-secondary, #f1f5f9);
 }
 
 .status-buttons__btn--active {
-  background-color: var(--app-primary);
+  background-color: var(--app-primary, #3b82f6);
   color: white;
 }
