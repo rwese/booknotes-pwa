@@ -41,6 +41,13 @@
   gap: 1rem;
 }
 
+/* Mobile: stack form row items vertically */
+@media (max-width: 480px) {
+  .form__row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .form__group {
   margin-bottom: 1rem;
 }
