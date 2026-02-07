@@ -7,7 +7,7 @@ import path from 'node:path'
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 
 // Cache busting version - update this when breaking changes require cache invalidation
-const CACHE_BUST_VERSION = '0.2.4'
+const CACHE_BUST_VERSION = '0.4.0'
 
 // https://vite.dev/config/
 export default defineConfig({
