@@ -7,7 +7,7 @@ import path from 'node:path'
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 
 // Cache busting version - update this when breaking changes require cache invalidation
-const CACHE_BUST_VERSION = '0.10.10'
+const CACHE_BUST_VERSION = '0.10.12'
 
 // Plugin to generate version.json in the build output
 function versionJsonPlugin(): Plugin {
