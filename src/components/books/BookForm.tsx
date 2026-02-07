@@ -545,11 +545,10 @@ export function BookForm({ mode }: BookFormProps) {
 
         <div className="form__row">
           <div className="form__group">
-            <label className="form__label" id="status-label">Status</label>
             <div
               className="status-buttons"
               role="group"
-              aria-labelledby="status-label"
+              aria-label="Reading status"
             >
               {readingStatuses.map((status) => (
                 <button
@@ -566,7 +565,6 @@ export function BookForm({ mode }: BookFormProps) {
           </div>
 
           <div className="form__group">
-            <label className="form__label">Rating</label>
             <div className="flex gap-1 pt-2">
               {Array.from({ length: 5 }).map((_, i) => (
                 <button
@@ -590,7 +588,6 @@ export function BookForm({ mode }: BookFormProps) {
                 </button>
               ))}
             </div>
-            <p className="form__hint">Click a star to set rating, click again to clear</p>
           </div>
         </div>
       </div>
