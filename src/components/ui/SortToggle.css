@@ -261,3 +261,19 @@
   background-color: var(--app-primary, #3b82f6);
   color: white;
 }
+
+/* Mobile: stack status buttons vertically */
+@media (max-width: 480px) {
+  .status-buttons {
+    flex-direction: column;
+  }
+
+  .status-buttons__btn {
+    border-right: none;
+    border-bottom: 1px solid var(--app-border, #e2e8f0);
+  }
+
+  .status-buttons__btn:last-child {
+    border-bottom: none;
+  }
+}

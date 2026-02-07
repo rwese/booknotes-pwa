@@ -975,7 +975,6 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
 }
 
 .chart-card__body {
-  min-height: 200px;
 }
 
 .chart-card__body canvas {
