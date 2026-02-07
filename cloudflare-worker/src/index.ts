@@ -64,8 +64,9 @@ function isAllowedOrigin(origin: string): boolean {
     if (url.hostname.endsWith('.github.io') || url.hostname === 'github.io') {
       return true
     }
-    // Allow localhost for development
-    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+    // Allow localhost for development (any port)
+    if (url.hostname === 'localhost' || url.hostname.startsWith('localhost:') ||
+        url.hostname === '127.0.0.1' || url.hostname.startsWith('127.0.0.1:')) {
       return true
     }
     return false
@@ -80,8 +81,8 @@ function handleCORS(origin: string): Response {
     headers: {
       'Access-Control-Allow-Origin': origin,
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Allow-Headers': 'X-API-Key, Content-Type',
-      'Access-Control-Max-Age': '86400'
+      'Access-Control-Allow-Headers': 'X-API-Key, Content-Type, Cache-Control',
+      'Access-Control-Max-Age': '300'
     }
   })
 }
