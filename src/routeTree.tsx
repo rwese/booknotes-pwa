@@ -10,8 +10,37 @@ import { BooksIndex } from './routes/books'
 // Base path for GitHub Pages deployment - exported for use in other components
 export const BASE_PATH = '/booknotes-pwa'
 
-// Root layout route
+// Root layout route with loader to handle redirects from 404.html
 const RootRoute = createRootRoute({
+  loader: () => {
+    // Check for sessionStorage redirect from 404.html (new approach)
+    const redirectRoute = sessionStorage.getItem('spa-redirect')
+    if (redirectRoute) {
+      sessionStorage.removeItem('spa-redirect')
+      // Throw redirect to be handled by router
+      throw new Response(null, {
+        status: 302,
+        headers: { Location: redirectRoute }
+      })
+    }
+
+    // Legacy fallback: handle old ?r= query param for users with cached 404.html
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const redirectPath = params.get('r')
+      if (redirectPath) {
+        const cleanPath = decodeURIComponent(redirectPath)
+        // Clean the URL by replacing state
+        window.history.replaceState({}, '', `${BASE_PATH}${cleanPath}`)
+        throw new Response(null, {
+          status: 302,
+          headers: { Location: cleanPath }
+        })
+      }
+    }
+
+    return null
+  },
   component: () => (
     <App />
   )
@@ -85,6 +114,8 @@ const routeTree = RootRoute.addChildren([
   scannerRoute,
   settingsRoute
 ])
+
+export { routeTree }
 
 export const router = createRouter({
   routeTree,
