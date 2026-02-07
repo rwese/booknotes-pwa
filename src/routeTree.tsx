@@ -1,4 +1,5 @@
-import { createRootRoute, createRoute, Outlet } from '@tanstack/react-router'
+import { createRootRoute, createRoute, Outlet, Navigate } from '@tanstack/react-router'
+import App from './App'
 import { BooksIndex } from './routes/books'
 import { BookDetail } from './components/books/BookDetail'
 import { BookForm } from './components/books/BookForm'
@@ -6,19 +7,16 @@ import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { ISBNScanner } from './components/scanner/ISBNScanner'
 
-// Root layout - just provides the outlet wrapper
+// Root layout - provides the app shell with TabBar
 const RootRoute = createRootRoute({
-  component: () => <Outlet />
+  component: () => <App />
 })
 
 // Index route - redirect to books
 const IndexRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/',
-  component: () => {
-    typeof window !== 'undefined' && window.history.replaceState(null, '', '/booknotes-pwa/books')
-    return null
-  }
+  component: () => <Navigate to="/books" replace />
 })
 
 // Books routes
