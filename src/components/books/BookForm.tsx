@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
-import { useBookBySlug, useCreateBook, useUpdateBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
+import { useBookBySlug, useCreateBook, useUpdateBook, useDeleteBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
 import { isbnService } from '../../services/isbnService'
 import { coverImageService } from '../../services/coverImageService'
 import { bookRepository } from '../../db/repositories/bookRepository'
@@ -57,6 +57,7 @@ export function BookForm({ mode }: BookFormProps) {
   const { data: existingBook } = useBookBySlug(bookSlug || '')
   const createBook = useCreateBook()
   const updateBook = useUpdateBook()
+  const deleteBook = useDeleteBook()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Autocomplete suggestions
@@ -124,10 +125,27 @@ export function BookForm({ mode }: BookFormProps) {
   const handleGoBack = () => {
     if (hasUnsavedChanges) {
       if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
-        navigate({ to: '/books' })
+        if (mode === 'edit' && existingBook) {
+          navigate({ to: '/books/$bookSlug', params: { bookSlug: existingBook.slug } })
+        } else {
+          navigate({ to: '/books' })
+        }
       }
     } else {
-      navigate({ to: '/books' })
+      if (mode === 'edit' && existingBook) {
+        navigate({ to: '/books/$bookSlug', params: { bookSlug: existingBook.slug } })
+      } else {
+        navigate({ to: '/books' })
+      }
+    }
+  }
+
+  const handleDelete = async () => {
+    if (confirm('Are you sure you want to delete this book?')) {
+      if (bookId) {
+        await deleteBook.mutateAsync(bookId)
+        navigate({ to: '/books' })
+      }
     }
   }
 
@@ -638,6 +656,21 @@ export function BookForm({ mode }: BookFormProps) {
           <polyline points="7 3 7 8 15 8" />
         </svg>
       </button>
+
+      {mode === 'edit' && (
+        <button
+          className="fab fab--mini fab--danger"
+          onClick={handleDelete}
+          disabled={deleteBook.isPending}
+          type="button"
+          aria-label="Delete Book"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+        </button>
+      )}
 
       {/* Cover Crop Modal */}
       {showCropModal && cropImageSrc && (
