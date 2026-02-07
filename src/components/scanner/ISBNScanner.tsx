@@ -71,7 +71,7 @@ export function ISBNScanner() {
           </div>
 
           <div className="border-t border-[var(--border)] pt-6">
-            <h3 className="text-base font-semibold mb-3">Or enter ISBN manually</h3>
+            <h2 className="text-base font-semibold mb-3">Or enter ISBN manually</h2>
             <form onSubmit={handleManualSubmit} className="flex gap-2">
               <input
                 type="text"

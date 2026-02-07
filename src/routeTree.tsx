@@ -21,7 +21,7 @@ const RootRoute = createRootRoute({
 const IndexRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: '/',
-  component: () => <Navigate to="/books" />
+  component: () => <Navigate to="/books" replace />
 })
 
 // Books routes

@@ -72,7 +72,7 @@ test.describe('Accessibility', () => {
       const exportJsonBtn = page.locator('button:has-text("Export JSON")')
       await expect(exportJsonBtn).toBeVisible()
 
-      const exportZipBtn = page.locator('button:has-text("Export ZIP")')
+      const exportZipBtn = page.locator('button:has-text("Export with Covers")')
       await expect(exportZipBtn).toBeVisible()
 
       const accessibilityScanResults = await new AxeBuilder({ page }).analyze()

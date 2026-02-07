@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Import Native Export', () => {
   test.beforeEach(async ({ page }) => {
     // Clear IndexedDB before each test
-    await page.goto('/settings')
+    await page.goto('/booknotes-pwa/settings')
     await page.evaluate(async () => {
       const dbs = await indexedDB.databases()
       for (const db of dbs) {
@@ -15,11 +15,8 @@ test.describe('Import Native Export', () => {
   })
 
   async function importFile(page: any) {
-    // Upload the test export
-    const fileChooserPromise = page.waitForEvent('filechooser')
-    await page.click('input[type="file"]')
-    const fileChooser = await fileChooserPromise
-    await fileChooser.setFiles('./tests/fixtures/books_export_test.zip')
+    // Use setInputFiles — the proper Playwright approach for file inputs
+    await page.locator('input[type="file"]').setInputFiles('./tests/fixtures/books_export_test.zip')
 
     // Wait for the Import button to become enabled
     await page.waitForFunction(() => {
@@ -33,7 +30,7 @@ test.describe('Import Native Export', () => {
     }, { timeout: 10000 })
 
     // Click the Import button (shows confirmation modal)
-    await page.getByRole('button', { name: 'Import' }).click()
+    await page.getByRole('button', { name: 'Import', exact: true }).click()
 
     // Wait for confirmation modal
     await page.waitForSelector('.modal-content', { timeout: 5000 })
@@ -65,7 +62,7 @@ test.describe('Import Native Export', () => {
     await page.click('.card:has-text("Import Result") button:has-text("Dismiss")')
 
     // Go to books page
-    await page.goto('/books')
+    await page.goto('/booknotes-pwa/books')
     await page.waitForLoadState('networkidle')
     await page.waitForTimeout(2000)
 
@@ -81,7 +78,7 @@ test.describe('Import Native Export', () => {
     await page.click('.card:has-text("Import Result") button:has-text("Dismiss")')
 
     // Go to edit page for first book
-    await page.goto('/books/test-book-1/edit')
+    await page.goto('/booknotes-pwa/books/test-book-1/edit')
     await page.waitForLoadState('networkidle')
 
     // Verify title field has value

@@ -131,7 +131,7 @@ export function BookDetail() {
 
   const statusLabel: Record<string, string> = {
     wantToRead: 'Want to Read',
-    currentlyReading: 'Reading',
+    currentlyReading: 'Currently Reading',
     read: 'Read'
   }
 

@@ -2,8 +2,8 @@
 
 :root {
   /* Semantic colors - app-prefixed for clarity */
-  --app-primary: #0ea5e9;
-  --app-primary-hover: #0284c7;
+  --app-primary: #0369a1;
+  --app-primary-hover: #025e8f;
   --app-success: #22c55e;
   --app-warning: #f97316;
   --app-danger: #ef4444;
@@ -36,12 +36,21 @@
 /* Base styles */
 * {
   box-sizing: border-box;
+  /* Prevent text size adjustment on orientation change */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
+  /* Prevent horizontal scroll */
+  overflow-x: hidden;
+  /* Prevent bounce scrolling on iOS */
+  overscroll-behavior-x: none;
 }
 
 body {
@@ -50,20 +59,48 @@ body {
   color: var(--app-text-primary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Prevent pull-to-refresh on mobile */
+  overscroll-behavior-y: none;
+  /* Prevent selection on touch */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Allow selection in input fields and text content */
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
+/* Touch-friendly interactive elements */
+a, button, input, select, textarea, [role="button"], [tabindex] {
+  /* Prevent double-tap zoom */
+  touch-action: manipulation;
+  /* Remove tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* App shell layout */
 .app-shell {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100dvh;
   overflow: hidden;
 }
 
 .main-content {
   flex: 1;
   overflow-y: auto;
-  padding: 1rem;
+  overflow-x: hidden;
+  padding: 0;
+  /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Prevent scroll chaining */
+  overscroll-behavior: contain;
 }
 
 /* Tab bar */
@@ -115,7 +152,20 @@ body {
 .form-input:focus {
   outline: none;
   border-color: var(--app-primary);
-  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.2);
+  box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.2);
+}
+
+/* Screen reader only utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
 }
 
 /* Button styles */
@@ -325,10 +375,29 @@ body {
   max-width: 300px;
 }
 
-/* Page header */
 .page-header {
-  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  padding: 12px 0.5rem 8px;
+  position: relative;
+  z-index: 60;
+  overflow: visible;
+}
+
+.page-header__title {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .page-header__title {
@@ -367,12 +436,17 @@ body {
   align-items: center;
   gap: 8px;
   flex: 1;
+  width: 100%;
+  z-index: 50;
+  position: relative;
 }
 
 .search-input {
   flex: 1;
   min-width: 200px;
   animation: slideIn 0.2s ease-out;
+  width: 100%;
+  padding: 10px 12px;
 }
 
 .search-close {
@@ -419,6 +493,19 @@ body {
   align-items: center;
 }
 
+.filter-bar__spacer {
+  flex: 1;
+  min-width: 12px;
+}
+
+.filter-bar__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  position: relative;
+  z-index: 50;
+}
+
 .filter-bar__search {
   flex: 1;
   min-width: 200px;
@@ -428,6 +515,9 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  overflow: visible;
 }
 
 .filter-bar__expandable {

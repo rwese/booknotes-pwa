@@ -2,6 +2,11 @@ import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { exportService, type ImportStrategy } from '../services/exportService'
 import { useApiSettings } from '../hooks/useApiSettings'
+import {
+  partialCacheInvalidation,
+  checkForUpdates,
+  registerServiceWorker
+} from '../utils/cacheInvalidation'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
@@ -45,8 +50,8 @@ export function SettingsPage() {
     setShowImportConfirm(false)
 
     try {
-      let result
-      if (selectedFile.name.endsWith('.zip')) {
+      let result: { imported: number; skipped: number; errors: string[] }
+      if (selectedFile!.name.endsWith('.zip')) {
         result = await exportService.importFromZIP(selectedFile, importStrategy)
       } else {
         result = await exportService.importFromJSON(selectedFile, importStrategy)
@@ -76,7 +81,7 @@ export function SettingsPage() {
 
       {/* Export Section */}
       <div className="card p-4 mb-4">
-        <h3 className="m-0 mb-4">Export Data</h3>
+        <h2 className="m-0 mb-4">Export Data</h2>
         <p className="text-sm text-[var(--text-primary)] opacity-60 mb-4">
           Export your book collection for backup or transfer.
         </p>
@@ -102,10 +107,11 @@ export function SettingsPage() {
 
       {/* Import Section */}
       <div className="card p-4 mb-4">
-        <h3 className="m-0 mb-4">Import Data</h3>
+        <h2 className="m-0 mb-4">Import Data</h2>
         <div className="form-group">
-          <label className="form-label">Select file (JSON or ZIP)</label>
+          <label className="form-label" htmlFor="import-file">Select file (JSON or ZIP)</label>
           <input
+            id="import-file"
             type="file"
             accept=".json,.zip"
             onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
@@ -115,8 +121,9 @@ export function SettingsPage() {
 
         {selectedFile && (
           <div className="form-group">
-            <label className="form-label">Import Strategy</label>
+            <label className="form-label" htmlFor="import-strategy">Import Strategy</label>
             <select
+              id="import-strategy"
               value={importStrategy}
               onChange={(e) => setImportStrategy(e.target.value as ImportStrategy)}
               className="form-input"
@@ -141,7 +148,7 @@ export function SettingsPage() {
       {/* Import Result */}
       {importResult && (
         <div className="card p-4">
-          <h3 className="m-0 mb-4">Import Result</h3>
+          <h2 className="m-0 mb-4">Import Result</h2>
           <div className="mb-3">
             <strong>{importResult.imported}</strong> items imported,{' '}
             <strong>{importResult.skipped}</strong> skipped
@@ -166,7 +173,7 @@ export function SettingsPage() {
       {showImportConfirm && (
         <div className="modal-overlay" onClick={() => setShowImportConfirm(false)}>
           <div className="modal-content max-w-md" onClick={(e) => e.stopPropagation()}>
-            <h3 className="m-0 mb-4">Confirm Import</h3>
+            <h2 className="m-0 mb-4">Confirm Import</h2>
             <p>
               This will import data from <strong>{selectedFile?.name}</strong>.
               <br /><br />
@@ -180,9 +187,53 @@ export function SettingsPage() {
         </div>
       )}
 
+      {/* Cache Management Section */}
+      <div className="card p-4 mb-4">
+        <h2 className="m-0 mb-4">Cache Management</h2>
+        <p className="text-sm text-[var(--text-primary)] opacity-60 mb-4">
+          Clear cached data to fix update issues. Use "Clear App Data" for complete reset.
+        </p>
+
+        <div className="flex gap-3 flex-wrap mb-4">
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={async () => {
+              const hasUpdate = await checkForUpdates()
+              if (!hasUpdate) {
+                await registerServiceWorker()
+              }
+            }}
+          >
+            Check for Updates
+          </button>
+          <button
+            type="button"
+            className="btn btn--secondary"
+            onClick={async () => {
+              await partialCacheInvalidation()
+            }}
+          >
+            Clear Runtime Cache
+          </button>
+        </div>
+
+        <button
+          type="button"
+          className="btn btn--warning"
+          onClick={async () => {
+            if (confirm('This will clear all cached data and reload the app. Your books will be preserved. Continue?')) {
+              await partialCacheInvalidation()
+            }
+          }}
+        >
+          Clear App Data
+        </button>
+      </div>
+
       {/* About Section */}
       <div className="card p-4 mt-6">
-        <h3 className="m-0 mb-2">About</h3>
+        <h2 className="m-0 mb-2">About</h2>
         <p className="text-sm text-[var(--text-primary)] opacity-60">
           BookNotes PWA v1.0<br />
           A progressive web app for managing your book collection.
@@ -245,14 +296,15 @@ function ApiSettingsSection() {
 
   return (
     <div className="card p-4 mb-4">
-      <h3 className="m-0 mb-4">API Settings</h3>
+      <h2 className="m-0 mb-4">API Settings</h2>
       <p className="text-sm text-[var(--text-primary)] opacity-60 mb-4">
         Configure the Cloudflare Worker proxy for ISBN lookups. Get your worker URL from your Cloudflare dashboard.
       </p>
 
       <div className="form-group">
-        <label className="form-label">Proxy URL</label>
+        <label className="form-label" htmlFor="proxy-url">Proxy URL</label>
         <input
+          id="proxy-url"
           type="url"
           value={proxyUrl}
           onChange={(e) => setProxyUrl(e.target.value)}
@@ -262,8 +314,9 @@ function ApiSettingsSection() {
       </div>
 
       <div className="form-group">
-        <label className="form-label">API Key (optional)</label>
+        <label className="form-label" htmlFor="api-key">API Key (optional)</label>
         <input
+          id="api-key"
           type="password"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}

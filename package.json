@@ -1,10 +1,10 @@
 {
   "name": "booknotes-pwa",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.6.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "GITHUB_PAGES=true vite",
     "build": "tsc -b && vite build",
     "build:pages": "GITHUB_PAGES=true tsc -b && vite build",
     "lint": "eslint .",
@@ -14,7 +14,14 @@
     "test:ui": "vitest --ui",
     "test:acceptance": "playwright test",
     "test:acceptance:ui": "playwright test --ui",
-    "deploy": "npm run build:pages && npm run preview:pages -- --port 4173 & sleep 5 && curl -I http://localhost:4173"
+    "deploy": "npm run build:pages && npm run preview:pages -- --port 4173 & sleep 5 && curl -I http://localhost:4173",
+    "version": "echo $npm_package_version",
+    "version:patch": "npm version patch && node scripts/version.js --patch",
+    "version:minor": "npm version minor && node scripts/version.js --minor",
+    "version:major": "npm version major && node scripts/version.js --major",
+    "version:dry-patch": "node scripts/version.js --patch --dry-run",
+    "version:dry-minor": "node scripts/version.js --minor --dry-run",
+    "version:dry-major": "node scripts/version.js --major --dry-run"
   },
   "dependencies": {
     "@tanstack/react-form": "^1.28.0",
