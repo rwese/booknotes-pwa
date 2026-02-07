@@ -1,4 +1,4 @@
-import { defineConfig, type UserConfig } from 'vite'
+import { defineConfig, type UserConfig, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import fs from 'node:fs'
@@ -7,7 +7,19 @@ import path from 'node:path'
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 
 // Cache busting version - update this when breaking changes require cache invalidation
-const CACHE_BUST_VERSION = '0.6.0'
+const CACHE_BUST_VERSION = '0.8.0'
+
+// Plugin to generate version.json in the build output
+function versionJsonPlugin(): Plugin {
+  return {
+    name: 'version-json',
+    writeBundle(options) {
+      const outDir = options.dir || 'dist'
+      const versionData = JSON.stringify({ version: CACHE_BUST_VERSION, timestamp: Date.now() })
+      fs.writeFileSync(path.resolve(outDir, 'version.json'), versionData)
+    }
+  }
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -23,6 +35,7 @@ export default defineConfig({
     }
   },
   plugins: [
+    versionJsonPlugin(),
     // SPA fallback for vite preview: rewrite non-file URLs to index.html
     {
       name: 'spa-fallback-preview',

@@ -127,6 +127,60 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
   color: var(--app-primary);
 }
 
+/* Update banner - positioned above tab bar */
+.update-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  background-color: var(--app-primary);
+  color: #fff;
+  font-size: 14px;
+  animation: update-banner-slide-up 0.3s ease-out;
+}
+
+.update-banner__text {
+  font-weight: 500;
+}
+
+.update-banner__btn {
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  font-weight: 600;
+}
+
+.update-banner__btn--refresh {
+  background-color: #fff;
+  color: var(--app-primary);
+}
+
+.update-banner__btn--dismiss {
+  background: transparent;
+  color: #fff;
+  font-size: 18px;
+  padding: 0.125rem 0.5rem;
+  opacity: 0.8;
+}
+
+.update-banner__btn--dismiss:hover {
+  opacity: 1;
+}
+
+@keyframes update-banner-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
 /* Form styles */
 .form-group {
   margin-bottom: 1rem;

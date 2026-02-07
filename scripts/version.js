@@ -116,6 +116,17 @@ function main() {
   // Update vite.config.ts CACHE_BUST_VERSION
   updateViteConfig(newVersion, newVersion)
 
+  // Update public/version.json
+  const versionJsonPath = join(ROOT_DIR, 'public', 'version.json')
+  if (existsSync(versionJsonPath)) {
+    if (isDryRun) {
+      console.log(`  [DRY RUN] Would update public/version.json: version -> '${newVersion}'`)
+    } else {
+      writeFileSync(versionJsonPath, JSON.stringify({ version: newVersion, timestamp: 0 }) + '\n')
+      console.log(`  ✓ Updated public/version.json: version = '${newVersion}'`)
+    }
+  }
+
   console.log('')
 
   if (isDryRun) {
