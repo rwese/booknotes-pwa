@@ -6,7 +6,6 @@
  * after releases or when troubleshooting cache issues.
  */
 
-import { liveQuery } from 'dexie'
 import { db } from '../db/schema'
 
 /**
@@ -33,9 +32,9 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
  */
 export async function getWaitingServiceWorker(): Promise<ServiceWorker | null> {
   if (!swRegistration) {
-    swRegistration = await navigator.serviceWorker.getRegistration()
+    swRegistration = await navigator.serviceWorker.getRegistration() ?? null
   }
-  return swRegistration?.waiting || null
+  return swRegistration?.waiting ?? null
 }
 
 /**

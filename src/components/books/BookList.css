@@ -4,8 +4,8 @@
 .book-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: 16px;
-  padding: 4px;
+  gap: 8px;
+  padding: 0 0.5rem;
 }
 
 @media (min-width: 640px) {
@@ -27,6 +27,10 @@
   border: 1px solid var(--app-border);
   border-radius: 0.75rem;
   overflow: hidden;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
 }
 
 .book-list-item {
