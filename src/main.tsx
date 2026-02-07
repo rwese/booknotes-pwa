@@ -5,6 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import router from './router'
 import './index.css'
 
+// PWA Service Worker registration will be handled by Vite PWA plugin
+// The plugin uses registerType: 'autoUpdate' which automatically registers
+// the service worker and handles updates
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
