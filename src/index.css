@@ -1215,6 +1215,8 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
 
 .fab--danger {
   background-color: var(--app-danger);
+  bottom: 9rem;
+  right: 1.5rem;
 }
 
 .fab--danger:hover {
