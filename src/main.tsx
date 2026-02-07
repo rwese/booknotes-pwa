@@ -24,9 +24,24 @@ function RedirectHandler() {
     const params = new URLSearchParams(window.location.search)
     const redirectPath = params.get('r')
     if (redirectPath) {
-      // Clean the path and navigate
+      // Clean the path and navigate, ensuring BASE_PATH is included
       const cleanPath = decodeURIComponent(redirectPath)
-      navigate({ to: cleanPath, replace: true })
+      const fullPath = cleanPath.startsWith('/booknotes-pwa') ? cleanPath : `/booknotes-pwa${cleanPath}`
+      navigate({ to: fullPath, replace: true })
+
+      // Also clean up the URL by removing the ?r= parameter to prevent users from being stuck
+      // with old cached versions that keep redirecting
+      window.history.replaceState({}, '', fullPath)
+    }
+
+    // Also clean up any malformed redirect URLs (e.g., ?r=%2Fbooks without base path)
+    // This helps users stuck with cached old versions
+    const currentPath = window.location.pathname
+    if (!currentPath.includes('/booknotes-pwa') && params.get('r')) {
+      const cleanPath = decodeURIComponent(params.get('r')!)
+      const fullPath = `/booknotes-pwa${cleanPath}`
+      window.history.replaceState({}, '', fullPath)
+      navigate({ to: fullPath, replace: true })
     }
   }, [navigate])
 
