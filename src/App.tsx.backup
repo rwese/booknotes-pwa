@@ -1,17 +1,16 @@
-import { Outlet } from '@tanstack/react-router'
+import { Outlet, useLocation } from '@tanstack/react-router'
+import { BASE_PATH } from './config'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useVersionCheck } from './hooks/useVersionCheck'
 
-const BASE_PATH = '/booknotes-pwa'
 
 function TabBar() {
-  const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
-
+  const location = useLocation()
   const isActive = (path: string) => {
     if (path === '/books') {
-      return pathname.includes('/books')
+      return location.pathname.startsWith('/books')
     }
-    return pathname === path || pathname === `${path}/`
+    return location.pathname === path
   }
 
   return (
@@ -51,7 +50,7 @@ function TabBar() {
   )
 }
 
-export default function App() {
+function App() {
   const { updateAvailable, newVersion, refresh, dismiss } = useVersionCheck()
 
   return (
@@ -66,3 +65,5 @@ export default function App() {
     </div>
   )
 }
+
+export default App
