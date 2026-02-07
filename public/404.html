@@ -8,17 +8,20 @@
     var path = window.location.pathname;
 
     // Calculate the base path
-    var basePath = '/booknotes-pwa/';
+    var basePath = '/booknotes-pwa';
 
-    // Extract the route path (remove base path)
+    // Strip the base path from the pathname to get just the route
     var routePath = path;
+    if (routePath.startsWith(basePath)) {
+      routePath = routePath.substring(basePath.length) || '/';
+    }
 
-    // If we're on the base path or root, redirect to base
-    if (routePath === basePath || routePath === basePath.substring(0, basePath.length - 1)) {
-      window.location.href = basePath;
+    // If we're on root or base path, redirect to base
+    if (routePath === '/' || routePath === '') {
+      window.location.href = basePath + '/';
     } else {
       // Redirect to index.html with the route path
-      window.location.href = basePath + '?r=' + encodeURIComponent(routePath);
+      window.location.href = basePath + '/?r=' + encodeURIComponent(routePath);
     }
   </script>
 </head>
