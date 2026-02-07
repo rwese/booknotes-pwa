@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef, useCallback } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
 import { useAllBooks } from '../../hooks/useBooks'
 import { useViewPreference } from '../../hooks/useViewPreference'
 import { useHashParams } from '../../hooks/useHashParams'
@@ -10,6 +10,7 @@ import { FilterPanel } from '../../components/ui/FilterPanel'
 import { BookGridCard } from '../../components/books/BookGridCard'
 import '../../components/books/BookList.css'
 import type { Book } from '../../types'
+import { navigateWithBasepath } from '../../utils/navigation'
 
 export function BooksIndex() {
   const navigate = useNavigate()
@@ -175,11 +176,11 @@ export function BooksIndex() {
   }, [filteredBooks, sortBy, sortOrder])
 
   const handleBookClick = (book: Book) => {
-    navigate({ to: '/books/$bookSlug', params: { bookSlug: book.slug || book.id } })
+    navigateWithBasepath(navigate, `/books/${book.slug || book.id}`)
   }
 
   const handleAddBook = () => {
-    navigate({ to: '/books/new' })
+    navigateWithBasepath(navigate, '/books/new')
   }
 
   if (isLoading) {

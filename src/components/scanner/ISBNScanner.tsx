@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Html5Qrcode } from 'html5-qrcode'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
+import { navigateWithBasepath } from '../../utils/navigation'
 import './ISBNScanner.css'
 
 export function ISBNScanner() {
@@ -13,7 +14,7 @@ export function ISBNScanner() {
   const handleScan = useCallback((isbn: string) => {
     setLastScanned(isbn)
     setError(null)
-    navigate({ to: '/books/new', search: { isbn } })
+    navigateWithBasepath(navigate, `/books/new?isbn=${isbn}`)
   }, [navigate])
 
   const startScanning = async () => {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from '@tanstack/react-router'
+import { useNavigate } from 'react-router-dom'
+import { navigateWithBasepath } from '../utils/navigation'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -143,7 +144,7 @@ export function AnalyticsPage() {
   // Navigate to books with filter hash
   const navigateToBooks = (filters: Record<string, string>) => {
     const hashParams = new URLSearchParams(filters).toString()
-    navigate({ to: `/books#${hashParams}` })
+    navigateWithBasepath(navigate, `/books#${hashParams}`)
   }
 
   useEffect(() => {
@@ -266,7 +267,7 @@ export function AnalyticsPage() {
           value={bookStats.totalBooks}
           label="Total Books"
           colorClass="stat-card--total"
-          onClick={() => navigate({ to: '/books' })}
+          onClick={() => navigateWithBasepath(navigate, '/books')}
         />
         <StatCard
           icon={<CheckIcon className="stat-card__icon" />}

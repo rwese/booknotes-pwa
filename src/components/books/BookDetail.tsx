@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
-import { useNavigate, useParams } from '@tanstack/react-router'
+import { useNavigate, useParams } from 'react-router-dom'
+import { navigateWithBasepath } from '../../utils/navigation'
 import { useBookBySlug } from '../../hooks/useBooks'
 import { noteRepository } from '../../db/repositories/noteRepository'
 import { bookRepository } from '../../db/repositories/bookRepository'
@@ -8,8 +9,7 @@ import type { Note, Book } from '../../types'
 import './BookDetail.css'
 
 export function BookDetail() {
-  const params = useParams({ from: '/books/$bookSlug' })
-  const { bookSlug } = params
+  const { bookSlug } = useParams()
   const navigate = useNavigate()
 
   // Check if the parameter is a UUID (legacy URL) or a slug
@@ -27,7 +27,7 @@ export function BookDetail() {
         if (book && mounted) {
           setBookId(book.id)
           // Redirect to slug URL
-          navigate({ to: '/books/$bookSlug', params: { bookSlug: book.slug }, replace: true })
+          navigateWithBasepath(navigate, `/books/${book.slug}`, { replace: true })
         }
       } else {
         // Slug URL - look up by slug
@@ -113,7 +113,7 @@ export function BookDetail() {
       <div className="book-detail">
         <div className="empty-state">
           <p style={{ marginBottom: 16 }}>Error loading book: {error?.message || 'Book not found'}</p>
-          <button className="btn btn--secondary" onClick={() => navigate({ to: '/books' })}>
+          <button className="btn btn--secondary" onClick={() => navigateWithBasepath(navigate, '/books')}>
             Back to Books
           </button>
         </div>
@@ -176,13 +176,13 @@ export function BookDetail() {
       <div className="book-detail__actions">
       </div>
 
-      <button className="fab fab--back" onClick={() => navigate({ to: '/books' })} aria-label="Back to Books">
+      <button className="fab fab--back" onClick={() => navigateWithBasepath(navigate, '/books')} aria-label="Back to Books">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
 
-      <button className="fab" onClick={() => navigate({ to: '/books/$bookSlug/edit', params: { bookSlug: book.slug } })} aria-label="Edit Book">
+      <button className="fab" onClick={() => navigateWithBasepath(navigate, `/books/${book.slug}/edit`)} aria-label="Edit Book">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />

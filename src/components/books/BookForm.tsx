@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { useNavigate, useParams, useSearch } from '@tanstack/react-router'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { navigateWithBasepath } from '../../utils/navigation'
 import Cropper from 'react-easy-crop'
 import type { Area } from 'react-easy-crop'
 import { useBookBySlug, useCreateBook, useUpdateBook, useDeleteBook, useAuthors, usePublishers, useGenres, useLanguages, useAllTags } from '../../hooks/useBooks'
@@ -19,10 +20,10 @@ interface BookFormProps {
 const readingStatuses: ReadingStatus[] = ['wantToRead', 'currentlyReading', 'read']
 
 export function BookForm({ mode }: BookFormProps) {
-  const search = useSearch({ from: mode === 'edit' ? '/books/$bookSlug/edit' : '/books/new' }) as { isbn?: string }
-  const params = useParams({ from: mode === 'edit' ? '/books/$bookSlug/edit' : '/books/new' }) as { bookSlug?: string }
+  const [searchParams] = useSearchParams()
+  const { bookSlug } = useParams()
   const navigate = useNavigate()
-  const bookSlug = mode === 'edit' ? params.bookSlug : undefined
+  const isbn = searchParams.get('isbn') || undefined
 
   // Resolve book ID from slug (handles both UUID legacy URLs and new slug URLs)
   const [resolvedBookId, setResolvedBookId] = useState<string | null>(null)
@@ -126,16 +127,16 @@ export function BookForm({ mode }: BookFormProps) {
     if (hasUnsavedChanges) {
       if (confirm('You have unsaved changes. Are you sure you want to discard them?')) {
         if (mode === 'edit' && existingBook) {
-          navigate({ to: '/books/$bookSlug', params: { bookSlug: existingBook.slug } })
+          navigateWithBasepath(navigate, `/books/${existingBook.slug}`)
         } else {
-          navigate({ to: '/books' })
+          navigateWithBasepath(navigate, '/books')
         }
       }
     } else {
       if (mode === 'edit' && existingBook) {
-        navigate({ to: '/books/$bookSlug', params: { bookSlug: existingBook.slug } })
+        navigateWithBasepath(navigate, `/books/${existingBook.slug}`)
       } else {
-        navigate({ to: '/books' })
+        navigateWithBasepath(navigate, '/books')
       }
     }
   }
@@ -144,7 +145,7 @@ export function BookForm({ mode }: BookFormProps) {
     if (confirm('Are you sure you want to delete this book?')) {
       if (bookId) {
         await deleteBook.mutateAsync(bookId)
-        navigate({ to: '/books' })
+        navigateWithBasepath(navigate, '/books')
       }
     }
   }
@@ -162,13 +163,12 @@ export function BookForm({ mode }: BookFormProps) {
 
   const [isbnProcessed, setIsbnProcessed] = useState(false)
   useEffect(() => {
-    if (mode === 'create' && typeof search.isbn === 'string' && search.isbn && !isbnProcessed) {
-      const isbn = search.isbn
+    if (mode === 'create' && isbn && !isbnProcessed) {
       setIsbnProcessed(true)
       setFormData(prev => ({ ...prev, isbn }))
       performISBNLookup(isbn)
     }
-  }, [mode, search.isbn, isbnProcessed])
+  }, [mode, isbn, isbnProcessed])
 
   const [formInitialized, setFormInitialized] = useState(false)
   useEffect(() => {
@@ -339,18 +339,18 @@ export function BookForm({ mode }: BookFormProps) {
         // Force refetch the book data to ensure fresh Blob references
         const freshBook = await bookRepository.getById(bookId)
         if (freshBook) {
-          navigate({ to: '/books/$bookSlug', params: { bookSlug: freshBook.slug } })
+          navigateWithBasepath(navigate, `/books/${freshBook.slug}`)
         } else {
-          navigate({ to: '/books' })
+          navigateWithBasepath(navigate, '/books')
         }
       } else {
         const newBookId = await createBook.mutateAsync(bookData)
         // Get the created book to get its slug
         const newBook = await bookRepository.getById(newBookId)
         if (newBook) {
-          navigate({ to: '/books/$bookSlug', params: { bookSlug: newBook.slug } })
+          navigateWithBasepath(navigate, `/books/${newBook.slug}`)
         } else {
-          navigate({ to: '/books' })
+          navigateWithBasepath(navigate, '/books')
         }
       }
     } catch (error) {
