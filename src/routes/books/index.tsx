@@ -5,7 +5,8 @@ import { useViewPreference } from '../../hooks/useViewPreference'
 import { useHashParams } from '../../hooks/useHashParams'
 import { ViewToggle } from '../../components/ui/ViewToggle'
 import { FilterToggle } from '../../components/ui/FilterToggle'
-import { SortToggle, type SortOption } from '../../components/ui/SortToggle'
+import { SortButton, type SortOption } from '../../components/ui/SortButton'
+import { SortPanel } from '../../components/ui/SortPanel'
 import { FilterPanel } from '../../components/ui/FilterPanel'
 import { BookGridCard } from '../../components/books/BookGridCard'
 import '../../components/books/BookList.css'
@@ -19,6 +20,7 @@ export function BooksIndex() {
   const [viewMode, setViewMode] = useViewPreference('list')
   const [showSearch, setShowSearch] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
+  const [showSort, setShowSort] = useState(false)
   const { params, setParams, clearParams } = useHashParams()
   const [sortBy, setSortBy] = useState<SortOption>('title')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
@@ -244,10 +246,11 @@ export function BooksIndex() {
             </button>
             <div className="filter-bar__spacer" />
             <div className="filter-bar__actions">
-              <SortToggle
+              <SortButton
                 sortBy={sortBy}
                 sortOrder={sortOrder}
-                onSortChange={handleSortChange}
+                isOpen={showSort}
+                onToggle={() => setShowSort(!showSort)}
               />
               <FilterToggle
                 isOpen={showFilters}
@@ -282,6 +285,15 @@ export function BooksIndex() {
         onRatingChange={handleRatingChange}
         onClear={handleClearFilters}
         activeFilterCount={activeFilterCount}
+      />
+
+      {/* Mobile-friendly sort panel */}
+      <SortPanel
+        isOpen={showSort}
+        onClose={() => setShowSort(false)}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onSortChange={handleSortChange}
       />
 
       {books?.length === 0 ? (

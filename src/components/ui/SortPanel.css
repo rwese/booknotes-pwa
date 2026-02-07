@@ -1,26 +1,16 @@
-/* SortToggle component styles */
-.sort-toggle-container {
-  position: relative;
-  overflow: visible;
-}
-
-.sort-toggle__arrow {
-  margin-left: 4px;
-}
-
-/* Sort modal overlay */
-.sort-modal-overlay {
+/* SortPanel component styles */
+.sort-panel-overlay {
   position: fixed;
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
-  z-index: 999;
+  z-index: 1000;
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  animation: fadeIn 0.2s ease;
+  animation: sortPanelFadeIn 0.2s ease;
 }
 
-@keyframes fadeIn {
+@keyframes sortPanelFadeIn {
   from {
     opacity: 0;
   }
@@ -29,8 +19,12 @@
   }
 }
 
-/* Sort modal - bottom sheet on mobile, centered card on desktop */
-.sort-modal {
+/* Sort panel - bottom sheet on mobile, centered card on desktop */
+.sort-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   background-color: var(--app-surface, #ffffff);
   width: 100%;
   max-width: 400px;
@@ -40,16 +34,16 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: slideUp 0.3s ease;
+  animation: sortPanelSlideUp 0.3s ease;
+  margin: 0 auto;
 }
 
 @media (min-width: 640px) {
-  .sort-modal {
+  .sort-panel {
     position: absolute;
-    top: auto;
     bottom: auto;
-    right: 0;
     left: auto;
+    right: 0;
     margin-top: 8px;
     border-radius: 0.75rem;
     max-height: none;
@@ -59,12 +53,12 @@
     animation: none;
   }
 
-  .sort-modal-overlay {
+  .sort-panel-overlay {
     align-items: flex-start;
   }
 }
 
-@keyframes slideUp {
+@keyframes sortPanelSlideUp {
   from {
     transform: translateY(100%);
   }
@@ -73,8 +67,8 @@
   }
 }
 
-/* Modal header */
-.sort-modal__header {
+/* Panel header */
+.sort-panel__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -83,14 +77,14 @@
   flex-shrink: 0;
 }
 
-.sort-modal__title {
+.sort-panel__title {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--app-text-primary, #0f172a);
   margin: 0;
 }
 
-.sort-modal__close {
+.sort-panel__close {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,24 +99,24 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.sort-modal__close:hover {
+.sort-panel__close:hover {
   background-color: var(--app-surface-secondary, #f1f5f9);
 }
 
 @media (min-width: 640px) {
-  .sort-modal__close {
+  .sort-panel__close {
     display: none;
   }
 }
 
-/* Modal content */
-.sort-modal__content {
+/* Panel content */
+.sort-panel__content {
   padding: 0.5rem 0;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
-.sort-modal__item {
+.sort-panel__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -139,43 +133,43 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.sort-modal__item:hover,
-.sort-modal__item:focus {
+.sort-panel__item:hover,
+.sort-panel__item:focus {
   background-color: var(--app-surface-secondary, #f1f5f9);
   outline: none;
 }
 
-.sort-modal__item:active {
+.sort-panel__item:active {
   background-color: var(--app-border, #e2e8f0);
 }
 
-.sort-modal__item--active {
+.sort-panel__item--active {
   font-weight: 500;
 }
 
-.sort-modal__item-label {
+.sort-panel__item-label {
   flex: 1;
 }
 
-.sort-modal__check {
+.sort-panel__check {
   color: var(--app-primary, #3b82f6);
   flex-shrink: 0;
 }
 
-.sort-modal__arrow-icon {
+.sort-panel__arrow-icon {
   color: var(--app-text-secondary, #64748b);
   flex-shrink: 0;
   margin-left: 0.5rem;
 }
 
-.sort-modal__divider {
+.sort-panel__divider {
   height: 1px;
   background-color: var(--app-border, #e2e8f0);
   margin: 0.5rem 0;
 }
 
 /* Drag handle for bottom sheet */
-.sort-modal::before {
+.sort-panel::before {
   content: '';
   display: block;
   width: 40px;
@@ -186,78 +180,44 @@
 }
 
 @media (min-width: 640px) {
-  .sort-modal::before {
+  .sort-panel::before {
     display: none;
   }
 }
 
 /* Dark mode */
 @media (prefers-color-scheme: dark) {
-  .sort-modal {
+  .sort-panel {
     background-color: var(--app-surface, #1e293b);
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
   }
 
-  .sort-modal__title {
+  .sort-panel__title {
     color: var(--app-text-primary, #f1f5f9);
   }
 
-  .sort-modal__close:hover {
+  .sort-panel__close:hover {
     background-color: var(--app-surface-secondary, #334155);
   }
 
-  .sort-modal__item {
+  .sort-panel__item {
     color: var(--app-text-primary, #f1f5f9);
   }
 
-  .sort-modal__item:hover,
-  .sort-modal__item:focus {
+  .sort-panel__item:hover,
+  .sort-panel__item:focus {
     background-color: var(--app-surface-secondary, #334155);
   }
 
-  .sort-modal__item:active {
+  .sort-panel__item:active {
     background-color: var(--app-border, #475569);
   }
 
-  .sort-modal__divider {
+  .sort-panel__divider {
     background-color: var(--app-border, #475569);
   }
 
-  .sort-modal::before {
+  .sort-panel::before {
     background-color: var(--app-border, #64748b);
   }
-}
-
-/* Status buttons (shared with FilterToggle styles) */
-.status-buttons {
-  display: flex;
-  border: 1px solid var(--app-border, #e2e8f0);
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.status-buttons__btn {
-  flex: 1;
-  padding: 10px 12px;
-  background: transparent;
-  border: none;
-  border-right: 1px solid var(--app-border, #e2e8f0);
-  cursor: pointer;
-  font-size: 14px;
-  color: var(--app-text-primary, #0f172a);
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.status-buttons__btn:last-child {
-  border-right: none;
-}
-
-.status-buttons__btn:hover:not(.status-buttons__btn--active) {
-  background-color: var(--app-surface-secondary, #f1f5f9);
-}
-
-.status-buttons__btn--active {
-  background-color: var(--app-primary, #3b82f6);
-  color: white;
 }

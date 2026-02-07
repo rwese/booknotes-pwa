@@ -110,6 +110,8 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
   background-color: var(--app-surface-primary);
   border-top: 1px solid var(--app-border);
   padding-bottom: env(safe-area-inset-bottom);
+  position: relative;
+  z-index: 100;
 }
 
 .tab-bar-item {
@@ -683,65 +685,6 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
 
 .sort-toggle__arrow {
   margin-left: 4px;
-}
-
-.sort-dropdown {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  margin-top: 4px;
-  min-width: 160px;
-  background-color: var(--app-background);
-  border: 1px solid var(--app-border);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  padding: 4px 0;
-  z-index: 100;
-}
-
-@media (prefers-color-scheme: dark) {
-  .sort-dropdown {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-  }
-}
-
-.sort-dropdown__item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  padding: 10px 12px;
-  background: none;
-  border: none;
-  text-align: left;
-  font-size: 14px;
-  color: var(--app-text-primary);
-  cursor: pointer;
-  transition: background-color 0.1s;
-}
-
-.sort-dropdown__item:hover {
-  background-color: var(--app-surface-primary);
-}
-
-.sort-dropdown__item--active {
-  background-color: var(--app-surface-primary);
-  font-weight: 500;
-}
-
-.sort-dropdown__check {
-  color: var(--app-primary);
-}
-
-.sort-dropdown__divider {
-  height: 1px;
-  background-color: var(--app-border);
-  margin: 4px 0;
-}
-
-.sort-dropdown__arrow-icon {
-  margin-left: 4px;
-  color: #64748b;
 }
 
 .filter-bar__clear {

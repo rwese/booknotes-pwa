@@ -1,0 +1,52 @@
+/* SortButton component styles */
+.sort-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  border: 1px solid var(--app-border);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  color: var(--app-text-primary);
+  transition: all 0.2s;
+  position: relative;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.sort-button:hover {
+  background-color: var(--app-surface-secondary);
+}
+
+.sort-button:active {
+  opacity: 0.7;
+}
+
+.sort-button--active {
+  background-color: var(--app-primary);
+  border-color: var(--app-primary);
+  color: white;
+}
+
+.sort-button__arrow {
+  margin-left: 4px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .sort-button {
+    color: var(--app-text-primary);
+  }
+
+  .sort-button:hover {
+    background-color: var(--app-surface-secondary);
+  }
+
+  .sort-button--active {
+    background-color: var(--app-primary);
+    border-color: var(--app-primary);
+    color: white;
+  }
+}
