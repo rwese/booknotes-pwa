@@ -101,6 +101,8 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
   -webkit-overflow-scrolling: touch;
   /* Prevent scroll chaining */
   overscroll-behavior: contain;
+  /* Add padding at bottom to prevent content from being hidden behind fixed tab bar */
+  padding-bottom: 60px;
 }
 
 /* Tab bar */
@@ -110,7 +112,10 @@ a, button, input, select, textarea, [role="button"], [tabindex] {
   background-color: var(--app-surface-primary);
   border-top: 1px solid var(--app-border);
   padding-bottom: env(safe-area-inset-bottom);
-  position: relative;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 100;
 }
 
