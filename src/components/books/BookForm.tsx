@@ -574,6 +574,7 @@ export function BookForm({ mode }: BookFormProps) {
                   type="button"
                   onClick={() => updateField('rating', formData.rating === i + 1 ? undefined : i + 1)}
                   className="p-1 cursor-pointer"
+                  aria-label={`Rate ${i + 1} stars`}
                 >
                   <svg
                     width="28"

@@ -80,7 +80,7 @@ function ChartCard({ title, children, emptyMessage }: { title: string; children:
   return (
     <div className="chart-card">
       <div className="chart-card__header">
-        <h3 className="chart-card__title">{title}</h3>
+        <h2 className="chart-card__title">{title}</h2>
       </div>
       <div className="chart-card__body">
         {children || <div className="chart-card__empty">{emptyMessage || 'No data available'}</div>}

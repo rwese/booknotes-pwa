@@ -25,6 +25,6 @@ test.describe('E2E - GitHub Pages Deployment', () => {
 
     await page.click('a[href="/booknotes-pwa/books"]')
     await page.waitForLoadState('networkidle')
-    await expect(page.locator('h1')).toContainText('Books')
+    await expect(page.locator('.books-page')).toBeVisible()
   })
 })

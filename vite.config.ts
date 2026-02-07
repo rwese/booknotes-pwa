@@ -1,6 +1,8 @@
 import { defineConfig, type UserConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import fs from 'node:fs'
+import path from 'node:path'
 
 const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 
@@ -21,6 +23,23 @@ export default defineConfig({
     }
   },
   plugins: [
+    // SPA fallback for vite preview: rewrite non-file URLs to index.html
+    {
+      name: 'spa-fallback-preview',
+      configurePreviewServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url && !req.url.includes('.') && !req.url.endsWith('/')) {
+            const basePath = isGitHubPages ? '/booknotes-pwa/' : '/'
+            const outDir = path.resolve(__dirname, 'dist')
+            const indexPath = path.join(outDir, 'index.html')
+            if (req.url.startsWith(basePath) && fs.existsSync(indexPath)) {
+              req.url = basePath + 'index.html'
+            }
+          }
+          next()
+        })
+      },
+    },
     react(),
     VitePWA({
       registerType: 'autoUpdate',
@@ -39,7 +58,8 @@ export default defineConfig({
         orientation: 'portrait',
         scope: '/',
         start_url: '/',
-        version: CACHE_BUST_VERSION, // Version for cache busting
+        // @ts-expect-error version is used for cache busting, not part of standard manifest
+        version: CACHE_BUST_VERSION,
         icons: [
           {
             src: 'icons/apple-icon-180.png',

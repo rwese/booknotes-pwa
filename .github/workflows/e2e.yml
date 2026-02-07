@@ -29,22 +29,8 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
-      - name: Build app
-        run: npm run build
-
-      - name: Start preview server
-        run: |
-          npm run preview:pages -- --port 5180 &
-          echo "Waiting for server to start..."
-          for i in {1..30}; do
-            if curl -s http://localhost:5180/booknotes-pwa > /dev/null 2>&1; then
-              echo "Server is ready!"
-              break
-            fi
-            sleep 1
-          done
-        env:
-          PLAYWRIGHT_BROWSERS_PATH: 0
+      - name: Build app for GitHub Pages
+        run: npm run build:pages
 
       - name: Run E2E tests
         run: npm run test:acceptance
