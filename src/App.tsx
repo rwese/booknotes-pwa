@@ -1,5 +1,7 @@
 import { Outlet, useLocation } from '@tanstack/react-router'
 import { BASE_PATH } from './routeTree'
+import { UpdateBanner } from './components/UpdateBanner'
+import { useVersionCheck } from './hooks/useVersionCheck'
 
 
 function TabBar() {
@@ -49,11 +51,16 @@ function TabBar() {
 }
 
 function App() {
+  const { updateAvailable, newVersion, refresh, dismiss } = useVersionCheck()
+
   return (
     <div className="app-shell">
       <main className="main-content">
         <Outlet />
       </main>
+      {updateAvailable && (
+        <UpdateBanner version={newVersion} onRefresh={refresh} onDismiss={dismiss} />
+      )}
       <TabBar />
     </div>
   )
