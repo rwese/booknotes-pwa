@@ -244,9 +244,16 @@ export function SettingsPage() {
 }
 
 function ApiSettingsSection() {
-  const { proxyUrl, apiKey, setProxyUrl, setApiKey, resetToDefaults } = useApiSettings()
+  const { proxyUrl, apiKey, setProxyUrl, resetToDefaults } = useApiSettings()
   const [status, setStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [testMessage, setTestMessage] = useState('')
+  // API key input is always empty for security - never populate with stored value
+  const [inputApiKey, setInputApiKey] = useState('')
+
+  // Use input API key if provided, otherwise fall back to stored key for connection test
+  const effectiveApiKey = inputApiKey || apiKey
+
+  const placeholder = apiKey ? 'Leave empty to use stored key' : 'Your worker API key'
 
   const testConnection = async () => {
     setStatus('testing')
@@ -262,7 +269,7 @@ function ApiSettingsSection() {
       const response = await fetch(url, {
         method: 'GET',
         headers: {
-          'X-API-Key': apiKey,
+          'X-API-Key': effectiveApiKey,
           'Accept': 'application/json',
           'Cache-Control': 'no-cache'
         },
@@ -318,9 +325,9 @@ function ApiSettingsSection() {
         <input
           id="api-key"
           type="password"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          placeholder="Your worker API key"
+          value={inputApiKey}
+          onChange={(e) => setInputApiKey(e.target.value)}
+          placeholder={placeholder}
           className="form-input"
         />
       </div>

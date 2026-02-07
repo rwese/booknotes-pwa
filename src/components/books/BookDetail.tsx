@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate, useParams } from '@tanstack/react-router'
-import { useBookBySlug, useDeleteBook } from '../../hooks/useBooks'
+import { useBookBySlug } from '../../hooks/useBooks'
 import { noteRepository } from '../../db/repositories/noteRepository'
 import { bookRepository } from '../../db/repositories/bookRepository'
 import { isUUID } from '../../utils/slug'
@@ -44,7 +44,6 @@ export function BookDetail() {
   }, [bookSlug, navigate])
 
   const { data: book, isLoading, error } = useBookBySlug(bookSlug || '')
-  const deleteBook = useDeleteBook()
   const [activeTab, setActiveTab] = useState<'overview' | 'details' | 'notes'>('overview')
 
   // If we resolved a legacy UUID, use that ID for operations
@@ -122,13 +121,6 @@ export function BookDetail() {
     )
   }
 
-  const handleDelete = async () => {
-    if (confirm('Are you sure you want to delete this book?')) {
-      await deleteBook.mutateAsync(effectiveBookId!)
-      navigate({ to: '/books' })
-    }
-  }
-
   const statusLabel: Record<string, string> = {
     wantToRead: 'Want to Read',
     currentlyReading: 'Currently Reading',
@@ -187,13 +179,6 @@ export function BookDetail() {
       <button className="fab fab--back" onClick={() => navigate({ to: '/books' })} aria-label="Back to Books">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
-
-      <button className="fab fab--mini fab--danger" onClick={handleDelete} disabled={deleteBook.isPending} aria-label="Delete Book">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <polyline points="3 6 5 6 21 6" />
-          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
         </svg>
       </button>
 
