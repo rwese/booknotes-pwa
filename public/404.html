@@ -2,21 +2,27 @@
 <html>
 <head>
   <meta charset="utf-8">
-  <title>BookNotes - Redirecting...</title>
+  <title>BookNotes - Loading...</title>
   <script>
-    // Store the original path
+    // Get the original pathname
     var path = window.location.pathname;
-    
-    // If we're already on the right path, just load the app
-    if (path === '/' || path === '/booknotes-pwa/') {
-      window.location.href = '/booknotes-pwa/';
+
+    // Calculate the base path
+    var basePath = '/booknotes-pwa/';
+
+    // Extract the route path (remove base path)
+    var routePath = path;
+
+    // If we're on the base path or root, redirect to base
+    if (routePath === basePath || routePath === basePath.substring(0, basePath.length - 1)) {
+      window.location.href = basePath;
     } else {
-      // Redirect to the app with the original path as hash
-      window.location.href = '/booknotes-pwa/' + window.location.hash;
+      // Redirect to index.html with the route path
+      window.location.href = basePath + '?r=' + encodeURIComponent(routePath);
     }
   </script>
 </head>
 <body>
-  <p>Redirecting to BookNotes...</p>
+  <p>Loading BookNotes...</p>
 </body>
 </html>
