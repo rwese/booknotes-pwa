@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLocation } from '@tanstack/react-router'
-import { BASE_PATH } from '../routeTree'
+import { BASE_PATH } from '../config'
 
 const STORAGE_KEY = 'app-version'
 

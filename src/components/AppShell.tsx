@@ -1,16 +1,16 @@
-import { Outlet, useLocation } from '@tanstack/react-router'
-import { BASE_PATH } from './config'
-import { UpdateBanner } from './components/UpdateBanner'
-import { useVersionCheck } from './hooks/useVersionCheck'
-
+import { Outlet } from '@tanstack/react-router'
+import { BASE_PATH } from '../config'
+import { UpdateBanner } from './UpdateBanner'
+import { useVersionCheck } from '../hooks/useVersionCheck'
 
 function TabBar() {
-  const location = useLocation()
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : ''
+
   const isActive = (path: string) => {
     if (path === '/books') {
-      return location.pathname.startsWith('/books')
+      return pathname.includes('/books')
     }
-    return location.pathname === path
+    return pathname === path || pathname === `${path}/`
   }
 
   return (
@@ -50,7 +50,7 @@ function TabBar() {
   )
 }
 
-function App() {
+export function AppShell() {
   const { updateAvailable, newVersion, refresh, dismiss } = useVersionCheck()
 
   return (
@@ -65,5 +65,3 @@ function App() {
     </div>
   )
 }
-
-export default App

@@ -5,24 +5,35 @@
   <title>BookNotes - Loading...</title>
   <script>
     // SPA redirect for GitHub Pages
-    // Store the full path in sessionStorage, then redirect to index.html
+    // Store the path (without base path) in sessionStorage, then redirect to index.html
     // The app will read sessionStorage and navigate to the correct route
-    var path = window.location.pathname;
+    var basePath = '/booknotes-pwa';
+    var fullPath = window.location.pathname;
     var search = window.location.search;
     var hash = window.location.hash;
 
-    // Store everything after the base path
-    var basePath = '/booknotes-pwa';
-    var routePath = path;
+    // Remove base path to get the route
+    var routePath = fullPath;
     if (routePath.startsWith(basePath)) {
-      routePath = routePath.substring(basePath.length) || '/';
+      routePath = routePath.slice(basePath.length);
     }
 
-    // Save the route + query + hash for the app to pick up
-    sessionStorage.setItem('spa-redirect', routePath + search + hash);
+    // Ensure route path starts with /
+    if (!routePath.startsWith('/') && routePath !== '') {
+      routePath = '/' + routePath;
+    }
 
-    // Redirect to the app root (clean URL, no ?r= params)
-    window.location.replace(basePath + '/');
+    // If we're already at the root (or base path only), no redirect needed
+    if (routePath === '/' || routePath === '') {
+      // Just load the app normally
+      window.location.replace(basePath + '/');
+    } else {
+      // Store the route + query + hash for the app to pick up
+      sessionStorage.setItem('spa-redirect', routePath + search + hash);
+
+      // Redirect to the app root (clean URL, no ?r= params)
+      window.location.replace(basePath + '/');
+    }
   </script>
 </head>
 <body>

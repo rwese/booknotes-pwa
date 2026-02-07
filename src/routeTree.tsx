@@ -1,36 +1,32 @@
 import { createRootRoute, createRoute, createRouter, Outlet, Navigate } from '@tanstack/react-router'
-import App from './App'
 import { BookForm } from './components/books/BookForm'
 import { BookDetail } from './components/books/BookDetail'
 import { ISBNScanner } from './components/scanner/ISBNScanner'
 import { AnalyticsPage } from './routes/analytics'
 import { SettingsPage } from './routes/settings'
 import { BooksIndex } from './routes/books'
+import { BASE_PATH } from './config'
+import { AppShell } from './components/AppShell'
 
-// Base path for GitHub Pages deployment - exported for use in other components
-export const BASE_PATH = '/booknotes-pwa'
-
-// Root layout route with loader to handle redirects from 404.html
+// Root layout route
 const RootRoute = createRootRoute({
   loader: () => {
-    // Check for sessionStorage redirect from 404.html (new approach)
+    // Check for sessionStorage redirect from 404.html
     const redirectRoute = sessionStorage.getItem('spa-redirect')
     if (redirectRoute) {
       sessionStorage.removeItem('spa-redirect')
-      // Throw redirect to be handled by router
       throw new Response(null, {
         status: 302,
         headers: { Location: redirectRoute }
       })
     }
 
-    // Legacy fallback: handle old ?r= query param for users with cached 404.html
+    // Legacy fallback: handle old ?r= query param
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search)
       const redirectPath = params.get('r')
       if (redirectPath) {
         const cleanPath = decodeURIComponent(redirectPath)
-        // Clean the URL by replacing state
         window.history.replaceState({}, '', `${BASE_PATH}${cleanPath}`)
         throw new Response(null, {
           status: 302,
@@ -41,9 +37,7 @@ const RootRoute = createRootRoute({
 
     return null
   },
-  component: () => (
-    <App />
-  )
+  component: () => <AppShell />
 })
 
 // Index route - redirect to books
@@ -53,7 +47,7 @@ const IndexRoute = createRoute({
   component: () => <Navigate to="/books" replace />
 })
 
-// Books routes
+// Books routes - using flat structure with unique path segments
 const booksRoute = createRoute({
   getParentRoute: () => RootRoute,
   path: 'books',
@@ -62,18 +56,16 @@ const booksRoute = createRoute({
 
 const booksIndexRoute = createRoute({
   getParentRoute: () => booksRoute,
-  path: '/',
+  path: '/',  // This should be '/' not '' for index
   component: () => <BooksIndex />
 })
 
-// Book detail route - accepts both slug and UUID
 const bookDetailRoute = createRoute({
   getParentRoute: () => booksRoute,
   path: '$bookSlug',
   component: () => <BookDetail />
 })
 
-// Book edit route - accepts both slug and UUID
 const bookEditRoute = createRoute({
   getParentRoute: () => booksRoute,
   path: '$bookSlug/edit',
@@ -107,6 +99,7 @@ const settingsRoute = createRoute({
   component: () => <SettingsPage />
 })
 
+// Build route tree
 const routeTree = RootRoute.addChildren([
   IndexRoute,
   booksRoute.addChildren([booksIndexRoute, bookDetailRoute, bookEditRoute, bookNewRoute]),
@@ -115,15 +108,10 @@ const routeTree = RootRoute.addChildren([
   settingsRoute
 ])
 
-export { routeTree }
-
-export const router = createRouter({
+// Create router
+const router = createRouter({
   routeTree,
   basepath: BASE_PATH
 })
 
-declare module '@tanstack/react-router' {
-  interface Register {
-    router: typeof router
-  }
-}
+export { routeTree, router }
