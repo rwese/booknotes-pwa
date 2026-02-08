@@ -5,26 +5,9 @@ interface Env {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const origin = request.headers.get('Origin') || ''
-
-    // Validate origin for CORS
-    if (!isAllowedOrigin(origin)) {
-      // For preflight OPTIONS, still validate origin
-      if (request.method === 'OPTIONS') {
-        return new Response('CORS not allowed', { status: 403 })
-      }
-      // For actual requests, check API key but still reject CORS
-      const apiKey = request.headers.get('X-API-Key')
-      const validKeys = env.API_KEYS.split(',').map((k) => k.trim())
-      if (!apiKey || !validKeys.includes(apiKey)) {
-        return new Response('Unauthorized', { status: 401 })
-      }
-      return new Response('CORS not allowed', { status: 403 })
-    }
-
-    // Handle CORS preflight
+    // Handle CORS preflight - allow all origins
     if (request.method === 'OPTIONS') {
-      return handleCORS(origin)
+      return handleCORS()
     }
 
     // Validate API key
@@ -41,10 +24,10 @@ export default {
 
     try {
       if (path.startsWith('/isbn/')) {
-        return await handleISBNLookup(path, url, env, origin)
+        return await handleISBNLookup(path, url, env)
       }
       if (path.startsWith('/cover/')) {
-        return await handleCoverImage(url, origin)
+        return await handleCoverImage(url)
       }
       return new Response('Not Found', { status: 404 })
     } catch {
@@ -53,33 +36,11 @@ export default {
   }
 }
 
-function isAllowedOrigin(origin: string): boolean {
-  try {
-    const url = new URL(origin)
-    // Allow nope.at domains and GitHub Pages deployments
-    if (url.hostname.endsWith('.nope.at') || url.hostname === 'nope.at') {
-      return true
-    }
-    // Allow github.io domains (user.github.io or organization.github.io)
-    if (url.hostname.endsWith('.github.io') || url.hostname === 'github.io') {
-      return true
-    }
-    // Allow localhost for development (any port)
-    if (url.hostname === 'localhost' || url.hostname.startsWith('localhost:') ||
-        url.hostname === '127.0.0.1' || url.hostname.startsWith('127.0.0.1:')) {
-      return true
-    }
-    return false
-  } catch {
-    return false
-  }
-}
-
-function handleCORS(origin: string): Response {
+function handleCORS(): Response {
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': origin,
+      'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Access-Control-Allow-Headers': 'X-API-Key, Content-Type, Cache-Control',
       'Access-Control-Max-Age': '300'
@@ -87,13 +48,13 @@ function handleCORS(origin: string): Response {
   })
 }
 
-function addCORSHeaders(response: Response, origin: string): Response {
+function addCORSHeaders(response: Response): Response {
   const newResponse = new Response(response.body, response)
-  newResponse.headers.set('Access-Control-Allow-Origin', origin)
+  newResponse.headers.set('Access-Control-Allow-Origin', '*')
   return newResponse
 }
 
-async function handleISBNLookup(path: string, url: URL, env: Env, origin: string): Promise<Response> {
+async function handleISBNLookup(path: string, url: URL, env: Env): Promise<Response> {
   const pathPart = path.replace('/isbn/', '')
   const source = url.searchParams.get('source') || 'google'
 
@@ -105,7 +66,7 @@ async function handleISBNLookup(path: string, url: URL, env: Env, origin: string
     }
     const targetUrl = `https://openlibrary.org${authorKey}.json`
     const response = await fetch(targetUrl)
-    return addCORSHeaders(response, origin)
+    return addCORSHeaders(response)
   }
 
   const isbn = pathPart
@@ -120,10 +81,10 @@ async function handleISBNLookup(path: string, url: URL, env: Env, origin: string
   }
 
   const response = await fetch(targetUrl)
-  return addCORSHeaders(response, origin)
+  return addCORSHeaders(response)
 }
 
-async function handleCoverImage(url: URL, origin: string): Promise<Response> {
+async function handleCoverImage(url: URL): Promise<Response> {
   const imageUrl = url.searchParams.get('url')
 
   if (!imageUrl) {
@@ -139,5 +100,5 @@ async function handleCoverImage(url: URL, origin: string): Promise<Response> {
   }
 
   const response = await fetch(imageUrl)
-  return addCORSHeaders(response, origin)
+  return addCORSHeaders(response)
 }
