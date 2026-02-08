@@ -1,0 +1,6 @@
+name = "booknotes-sentry-proxy"
+main = "src/sentryProxy.ts"
+compatibility_date = "2025-02-08"
+
+[vars]
+# SENTRY_DSN will be set as a secret, not here

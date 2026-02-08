@@ -45,9 +45,9 @@ const queryClient = new QueryClient({
 })
 
 // Initialize Sentry for error tracking and performance monitoring
-console.log('[Sentry] Initializing with DSN:', 'https://dbb65c15b4209e7a3083644c515c10c7@o4510849603731456.ingest.de.sentry.io/4510849744896080')
+console.log('[Sentry] Initializing with DSN:', 'https://dbb65c15b4209e7a3083644c515c10c7@booknotes-sentry-proxy.wese.workers.dev/4510849744896080')
 Sentry.init({
-  dsn: 'https://dbb65c15b4209e7a3083644c515c10c7@o4510849603731456.ingest.de.sentry.io/4510849744896080',
+  dsn: 'https://dbb65c15b4209e7a3083644c515c10c7@booknotes-sentry-proxy.wese.workers.dev/4510849744896080',
   sendDefaultPii: true,
   enableLogs: true,
   integrations: [
