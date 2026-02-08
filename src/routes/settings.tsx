@@ -245,8 +245,10 @@ export function SettingsPage() {
           type="button"
           className="btn btn--secondary mt-4"
           onClick={() => {
-            Sentry.captureException(new Error('Test exception from Settings'))
-            alert('Test exception sent to Sentry!')
+            const eventId = Sentry.captureException(new Error('Test exception from Settings'))
+            console.log('[Sentry] captureException called, eventId:', eventId)
+            console.log('[Sentry] isInitialized:', Sentry.isInitialized())
+            alert(`Test exception sent! Event ID: ${eventId}`)
           }}
         >
           Test Sentry
