@@ -1,10 +1,13 @@
 import { useContext } from 'react'
-import { BottomSheetContext } from '../context/BottomSheetContext'
+import { ModalContext } from '../context/ModalContext'
 
-export function useBottomSheet() {
-  const context = useContext(BottomSheetContext)
+export function useModal() {
+  const context = useContext(ModalContext)
   if (!context) {
-    throw new Error('useBottomSheet must be used within a BottomSheetProvider')
+    throw new Error('useModal must be used within a ModalProvider')
   }
   return context
 }
+
+// Keep alias for backward compatibility
+export const useBottomSheet = useModal

@@ -268,7 +268,7 @@
   right: 0;
   bottom: 0;
   background-color: rgba(0, 0, 0, 0.85);
-  z-index: 1000;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -292,7 +292,7 @@
   flex: 1;
   min-height: 0;
   position: relative;
-  background-color: #1a1a1a;
+  background-color: var(--app-bg-primary);
 }
 
 .crop-modal-cropper .react-easy-crop {
@@ -334,25 +334,42 @@
   border: 1px solid var(--app-border);
 }
 
-/* Mobile viewport fixes for crop modal */
-@media (max-width: 480px) {
-  .crop-modal-overlay {
-    align-items: flex-end;
-    padding: 0;
-  }
+  /* Mobile viewport fixes for crop modal */
+  @media (max-width: 480px) {
+    .crop-modal-overlay {
+      align-items: flex-end;
+      padding: 0;
+      padding-top: env(safe-area-inset-top);
+    }
 
-  .crop-modal-container {
-    margin: 0;
-    margin-bottom: env(safe-area-inset-bottom);
-    max-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 20px);
-    border-radius: 16px 16px 0 0;
-  }
+    .crop-modal-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 0;
+      margin-bottom: env(safe-area-inset-bottom);
+      max-height: none;
+      height: -webkit-fill-available;
+      border-radius: 16px 16px 0 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
 
-  .crop-modal-actions {
-    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;
-  }
+    .crop-modal-cropper {
+      flex: 1;
+      min-height: 0;
+      max-height: none;
+      overflow: hidden;
+    }
 
-  .crop-modal-actions .btn {
-    min-height: 52px;
+    .crop-modal-actions {
+      flex-shrink: 0;
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) 16px;
+    }
+
+    .crop-modal-actions .btn {
+      min-height: 52px;
+    }
   }
-}

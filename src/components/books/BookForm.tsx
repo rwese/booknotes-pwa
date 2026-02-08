@@ -10,6 +10,7 @@ import { bookRepository } from '../../db/repositories/bookRepository'
 import { isUUID } from '../../utils/slug'
 import { AutocompleteInput } from '../ui/AutocompleteInput'
 import { TagsInput } from '../ui/TagsInput'
+import { useModal } from '../../hooks/useBottomSheet'
 import type { BookFormData, ReadingStatus } from '../../types'
 import './BookForm.css'
 
@@ -101,6 +102,12 @@ export function BookForm({ mode }: BookFormProps) {
   const [crop, setCrop] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
   const [cropArea, setCropArea] = useState<Area | null>(null)
   const [isProcessingCrop, setIsProcessingCrop] = useState(false)
+  const { setModalOpen } = useModal()
+
+  // Hide TabBar when crop modal is open
+  useEffect(() => {
+    setModalOpen(showCropModal)
+  }, [showCropModal, setModalOpen])
 
   const hasUnsavedChanges = (() => {
     if (!initialFormData) return formData.title !== '' || formData.author !== ''

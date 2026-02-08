@@ -1,7 +1,7 @@
 import { useMemo, useRef, useEffect, useState } from 'react'
 import type { Book } from '../../types'
 import './FilterPanel.css'
-import { useBottomSheet } from '../../hooks/useBottomSheet'
+import { useModal } from '../../hooks/useBottomSheet'
 
 interface FilterPanelProps {
   isOpen: boolean
@@ -39,7 +39,7 @@ export function FilterPanel({
   const modalRef = useRef<HTMLDivElement>(null)
   const [genreSearch, setGenreSearch] = useState('')
   const [tagSearch, setTagSearch] = useState('')
-  const { setBottomSheetOpen } = useBottomSheet()
+  const { setModalOpen } = useModal()
 
   // Get unique genres and tags from books
   const genres = useMemo(() => {
@@ -95,16 +95,16 @@ export function FilterPanel({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      setBottomSheetOpen(true)
+      setModalOpen(true)
     } else {
       document.body.style.overflow = ''
-      setBottomSheetOpen(false)
+      setModalOpen(false)
     }
     return () => {
       document.body.style.overflow = ''
-      setBottomSheetOpen(false)
+      setModalOpen(false)
     }
-  }, [isOpen, setBottomSheetOpen])
+  }, [isOpen, setModalOpen])
 
   // Reset search when panel closes
   useEffect(() => {

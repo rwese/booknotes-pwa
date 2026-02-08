@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react'
 import type { SortOption } from './SortButton'
 import './SortPanel.css'
-import { useBottomSheet } from '../../hooks/useBottomSheet'
+import { useModal } from '../../hooks/useBottomSheet'
 
 interface SortPanelProps {
   isOpen: boolean
@@ -19,7 +19,7 @@ export function SortPanel({
   onSortChange 
 }: SortPanelProps) {
   const modalRef = useRef<HTMLDivElement>(null)
-  const { setBottomSheetOpen } = useBottomSheet()
+  const { setModalOpen } = useModal()
 
   const options: { value: SortOption; label: string }[] = [
     { value: 'title', label: 'Title' },
@@ -63,16 +63,16 @@ export function SortPanel({
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      setBottomSheetOpen(true)
+      setModalOpen(true)
     } else {
       document.body.style.overflow = ''
-      setBottomSheetOpen(false)
+      setModalOpen(false)
     }
     return () => {
       document.body.style.overflow = ''
-      setBottomSheetOpen(false)
+      setModalOpen(false)
     }
-  }, [isOpen, setBottomSheetOpen])
+  }, [isOpen, setModalOpen])
 
   if (!isOpen) return null
 

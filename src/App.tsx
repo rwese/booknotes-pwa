@@ -2,13 +2,14 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useVersionCheck } from './hooks/useVersionCheck'
 import { BASE_PATH, navigateWithBasepath } from './utils/navigation'
-import { BottomSheetProvider } from './context/BottomSheetContext'
-import { useBottomSheet } from './hooks/useBottomSheet'
+import { ModalProvider, ModalContext } from './context/ModalContext'
+import { useContext } from 'react'
 
 function TabBar() {
   const location = useLocation()
   const navigate = useNavigate()
-  const { isBottomSheetOpen } = useBottomSheet()
+  const modalContext = useContext(ModalContext)
+  const isModalOpen = modalContext?.isModalOpen ?? false
 
   const isActive = (path: string) => {
     const fullPath = path === '/books' ? `${BASE_PATH}/books` : `${BASE_PATH}${path}`
@@ -23,8 +24,9 @@ function TabBar() {
   }
 
   return (
-    <nav className={`tab-bar ${isBottomSheetOpen ? 'tab-bar--hidden' : ''}`}>
+    <nav className={`tab-bar ${isModalOpen ? 'tab-bar--hidden' : ''}`}>
       <button
+        type="button"
         onClick={() => handleNavigate('/books')}
         className={`tab-bar-item ${isActive('/books') ? 'active' : ''}`}
         aria-label="Books"
@@ -37,6 +39,7 @@ function TabBar() {
       </button>
 
       <button
+        type="button"
         onClick={() => handleNavigate('/analytics')}
         className={`tab-bar-item ${isActive('/analytics') ? 'active' : ''}`}
         aria-label="Analytics"
@@ -49,6 +52,7 @@ function TabBar() {
       </button>
 
       <button
+        type="button"
         onClick={() => handleNavigate('/scanner')}
         className={`tab-bar-item ${isActive('/scanner') ? 'active' : ''}`}
         aria-label="Scan"
@@ -64,6 +68,7 @@ function TabBar() {
       </button>
 
       <button
+        type="button"
         onClick={() => handleNavigate('/settings')}
         className={`tab-bar-item ${isActive('/settings') ? 'active' : ''}`}
         aria-label="Settings"
@@ -82,7 +87,7 @@ export default function App() {
   const { updateAvailable, newVersion, refresh, dismiss } = useVersionCheck()
 
   return (
-    <BottomSheetProvider>
+    <ModalProvider>
       <div className="app-shell">
         <main className="main-content">
           <Outlet />
@@ -92,6 +97,6 @@ export default function App() {
         )}
         <TabBar />
       </div>
-    </BottomSheetProvider>
+    </ModalProvider>
   )
 }
