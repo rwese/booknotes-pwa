@@ -166,6 +166,8 @@ navigateWithBasepath(navigate, '/books/new', { replace: true });
    tmux capture-pane -p -t devserver | grep "ready"
    ```
 
+   **IMPORTANT**: All development work must use the tmux-managed dev server. Never run `npm run dev` directly in the terminal.
+
 2. **Stopping Dev Server**:
    ```bash
    # Kill tmux session

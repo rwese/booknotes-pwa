@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bottom Sheet Fix Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .app-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .tab-bar {
+            display: flex;
+            justify-content: space-around;
+            background-color: white;
+            border-top: 1px solid #e0e0e0;
+            padding: 10px 0;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transition: transform 0.3s ease;
+        }
+        
+        .tab-bar--hidden {
+            transform: translateY(100%);
+        }
+        
+        .tab-bar-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px;
+            color: #666;
+            text-decoration: none;
+            font-size: 12px;
+        }
+        
+        .tab-bar-item.active {
+            color: #0369a1;
+        }
+        
+        .filter-panel-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            animation: filterPanelFadeIn 0.2s ease;
+        }
+        
+        @keyframes filterPanelFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .filter-panel {
+            background-color: white;
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            border-radius: 1rem 1rem 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: filterPanelSlideUp 0.3s ease;
+        }
+        
+        @keyframes filterPanelSlideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+        
+        .filter-panel__header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .filter-panel__title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .filter-panel__close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: transparent;
+            cursor: pointer;
+            font-size: 24px;
+        }
+        
+        .filter-panel__content {
+            padding: 1rem;
+            overflow-y: auto;
+        }
+        
+        button {
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .test-controls {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="app-shell">
+        <main class="main-content">
+            <h1>Bottom Sheet Fix Test</h1>
+            <p>This test simulates the bottom sheet behavior with tab bar hiding.</p>
+            <p>Click the button below to toggle the filter panel.</p>
+            <button id="toggleFilter" style="padding: 10px 20px; background: #0369a1; color: white; border-radius: 5px; margin: 20px 0;">
+                Toggle Filter Panel
+            </button>
+        </main>
+        
+        <nav class="tab-bar" id="tabBar">
+            <button class="tab-bar-item active">
+                <div>📚</div>
+                <span>Books</span>
+            </button>
+            <button class="tab-bar-item">
+                <div>📊</div>
+                <span>Analytics</span>
+            </button>
+            <button class="tab-bar-item">
+                <div>🔍</div>
+                <span>Scan</span>
+            </button>
+            <button class="tab-bar-item">
+                <div>⚙️</div>
+                <span>Settings</span>
+            </button>
+        </nav>
+    </div>
+    
+    <div class="filter-panel-overlay" id="filterOverlay" style="display: none;">
+        <div class="filter-panel">
+            <div class="filter-panel__header">
+                <h3 class="filter-panel__title">Filters</h3>
+                <button class="filter-panel__close" id="closeFilter">×</button>
+            </div>
+            <div class="filter-panel__content">
+                <p>This is the filter panel content. It should appear above the tab bar when opened.</p>
+                <p>The tab bar should slide down and disappear when this panel is open.</p>
+                <p>When closed, the tab bar should slide back up.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-controls">
+        <h4>Test Controls</h4>
+        <p>Status: <span id="status">Ready</span></p>
+        <button id="testButton" style="padding: 5px 10px; background: #28a745; color: white; border-radius: 3px;">
+            Run Test
+        </button>
+    </div>
+    
+    <script>
+        const toggleFilterBtn = document.getElementById('toggleFilter')
+        const closeFilterBtn = document.getElementById('closeFilter')
+        const filterOverlay = document.getElementById('filterOverlay')
+        const tabBar = document.getElementById('tabBar')
+        const testButton = document.getElementById('testButton')
+        const statusElement = document.getElementById('status')
+        
+        let isFilterOpen = false
+        
+        function toggleFilterPanel() {
+            isFilterOpen = !isFilterOpen
+            
+            if (isFilterOpen) {
+                filterOverlay.style.display = 'flex'
+                tabBar.classList.add('tab-bar--hidden')
+                statusElement.textContent = 'Filter Panel Open - Tab Bar Hidden'
+                statusElement.style.color = 'green'
+            } else {
+                filterOverlay.style.display = 'none'
+                tabBar.classList.remove('tab-bar--hidden')
+                statusElement.textContent = 'Filter Panel Closed - Tab Bar Visible'
+                statusElement.style.color = 'blue'
+            }
+        }
+        
+        function runTest() {
+            statusElement.textContent = 'Running test...'
+            statusElement.style.color = 'orange'
+            
+            // Test 1: Open filter panel
+            setTimeout(() => {
+                toggleFilterPanel()
+                
+                // Check if tab bar is hidden
+                setTimeout(() => {
+                    const isTabBarHidden = tabBar.classList.contains('tab-bar--hidden')
+                    const isOverlayVisible = filterOverlay.style.display === 'flex'
+                    
+                    if (isTabBarHidden && isOverlayVisible) {
+                        statusElement.textContent = '✅ Test 1 PASSED: Tab bar hidden when filter open'
+                        statusElement.style.color = 'green'
+                    } else {
+                        statusElement.textContent = '❌ Test 1 FAILED: Tab bar not properly hidden'
+                        statusElement.style.color = 'red'
+                    }
+                    
+                    // Test 2: Close filter panel
+                    setTimeout(() => {
+                        toggleFilterPanel()
+                        
+                        setTimeout(() => {
+                            const isTabBarVisible = !tabBar.classList.contains('tab-bar--hidden')
+                            const isOverlayHidden = filterOverlay.style.display === 'none'
+                            
+                            if (isTabBarVisible && isOverlayHidden) {
+                                statusElement.textContent = '✅ Test 2 PASSED: Tab bar visible when filter closed'
+                                statusElement.style.color = 'green'
+                            } else {
+                                statusElement.textContent = '❌ Test 2 FAILED: Tab bar not properly restored'
+                                statusElement.style.color = 'red'
+                            }
+                        }, 500)
+                    }, 1000)
+                }, 500)
+            }, 500)
+        }
+        
+        toggleFilterBtn.addEventListener('click', toggleFilterPanel)
+        closeFilterBtn.addEventListener('click', toggleFilterPanel)
+        testButton.addEventListener('click', runTest)
+        
+        // Add click outside to close
+        filterOverlay.addEventListener('click', (e) => {
+            if (e.target === filterOverlay) {
+                toggleFilterPanel()
+            }
+        })
+    </script>
+</body>
+</html>

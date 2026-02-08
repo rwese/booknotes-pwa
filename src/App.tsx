@@ -2,10 +2,13 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { UpdateBanner } from './components/UpdateBanner'
 import { useVersionCheck } from './hooks/useVersionCheck'
 import { BASE_PATH, navigateWithBasepath } from './utils/navigation'
+import { BottomSheetProvider } from './context/BottomSheetContext'
+import { useBottomSheet } from './hooks/useBottomSheet'
 
 function TabBar() {
   const location = useLocation()
   const navigate = useNavigate()
+  const { isBottomSheetOpen } = useBottomSheet()
 
   const isActive = (path: string) => {
     const fullPath = path === '/books' ? `${BASE_PATH}/books` : `${BASE_PATH}${path}`
@@ -20,7 +23,7 @@ function TabBar() {
   }
 
   return (
-    <nav className="tab-bar">
+    <nav className={`tab-bar ${isBottomSheetOpen ? 'tab-bar--hidden' : ''}`}>
       <button
         onClick={() => handleNavigate('/books')}
         className={`tab-bar-item ${isActive('/books') ? 'active' : ''}`}
@@ -79,14 +82,16 @@ export default function App() {
   const { updateAvailable, newVersion, refresh, dismiss } = useVersionCheck()
 
   return (
-    <div className="app-shell">
-      <main className="main-content">
-        <Outlet />
-      </main>
-      {updateAvailable && (
-        <UpdateBanner version={newVersion} onRefresh={refresh} onDismiss={dismiss} />
-      )}
-      <TabBar />
-    </div>
+    <BottomSheetProvider>
+      <div className="app-shell">
+        <main className="main-content">
+          <Outlet />
+        </main>
+        {updateAvailable && (
+          <UpdateBanner version={newVersion} onRefresh={refresh} onDismiss={dismiss} />
+        )}
+        <TabBar />
+      </div>
+    </BottomSheetProvider>
   )
 }

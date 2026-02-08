@@ -5,11 +5,10 @@ export type SortOption = 'title' | 'author' | 'createdAt' | 'updatedAt' | 'ratin
 interface SortButtonProps {
   isOpen: boolean
   onToggle: () => void
-  sortBy: SortOption
   sortOrder: 'asc' | 'desc'
 }
 
-export function SortButton({ isOpen, onToggle, sortBy, sortOrder }: SortButtonProps) {
+export function SortButton({ isOpen, onToggle, sortOrder }: SortButtonProps) {
   return (
     <button
       className={`sort-button ${isOpen ? 'sort-button--active' : ''}`}

@@ -247,7 +247,6 @@ export function BooksIndex() {
             <div className="filter-bar__spacer" />
             <div className="filter-bar__actions">
               <SortButton
-                sortBy={sortBy}
                 sortOrder={sortOrder}
                 isOpen={showSort}
                 onToggle={() => setShowSort(!showSort)}
