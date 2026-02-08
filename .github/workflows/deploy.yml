@@ -34,7 +34,7 @@ jobs:
         run: npm ci
 
       - name: Clear build cache
-        run: rm -rf node_modules/.vite
+        run: rm -rf node_modules/.vite dist
 
       - name: Build for GitHub Pages
         run: GITHUB_PAGES=true npm run build
