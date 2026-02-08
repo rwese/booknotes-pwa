@@ -19,7 +19,7 @@ export function useApiSettings() {
       if (stored) {
         const parsed = JSON.parse(stored)
         return {
-          proxyUrl: parsed.proxyUrl || DEFAULT_PROXY_URL,
+          proxyUrl: (parsed.proxyUrl || DEFAULT_PROXY_URL).replace(/\/+$/, ''),
           apiKey: parsed.apiKey || ''
         }
       }
@@ -38,7 +38,9 @@ export function useApiSettings() {
   }, [settings])
 
   const setProxyUrl = useCallback((url: string) => {
-    setSettingsState(prev => ({ ...prev, proxyUrl: url }))
+    // Normalize URL by removing trailing slashes for consistent API calls
+    const normalizedUrl = url.replace(/\/+$/, '')
+    setSettingsState(prev => ({ ...prev, proxyUrl: normalizedUrl }))
   }, [])
 
   const setApiKey = useCallback((key: string) => {
@@ -75,7 +77,7 @@ export function getApiConfig() {
     if (stored) {
       const parsed = JSON.parse(stored)
       return {
-        proxyBaseUrl: parsed.proxyUrl || DEFAULT_PROXY_URL,
+        proxyBaseUrl: (parsed.proxyUrl || DEFAULT_PROXY_URL).replace(/\/+$/, ''),
         apiKey: parsed.apiKey || ''
       }
     }
@@ -84,7 +86,7 @@ export function getApiConfig() {
   }
 
   return {
-    proxyBaseUrl: DEFAULT_PROXY_URL,
+    proxyBaseUrl: DEFAULT_PROXY_URL.replace(/\/+$/, ''),
     apiKey: ''
   }
 }
