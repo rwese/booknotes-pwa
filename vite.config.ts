@@ -9,30 +9,70 @@ const isGitHubPages = process.env.GITHUB_PAGES === 'true'
 // Cache busting version - update this when breaking changes require cache invalidation
 const CACHE_BUST_VERSION = '0.12.0'
 
-// Plugin to generate version.json in the build output
-function versionJsonPlugin(): Plugin {
+// Plugin to generate build-info.json in the build output with full deployment details
+function buildInfoPlugin(): Plugin {
   return {
-    name: 'version-json',
-    writeBundle(options) {
+    name: 'build-info',
+    async writeBundle(options) {
       const outDir = options.dir || 'dist'
-      const versionData = JSON.stringify({ version: CACHE_BUST_VERSION, timestamp: Date.now() })
-      fs.writeFileSync(path.resolve(outDir, 'version.json'), versionData)
+
+      // Get git info
+      const commitHash = process.env.GITHUB_SHA?.substring(0, 7) || 'unknown'
+      const branch = process.env.GITHUB_REF_NAME || 'unknown'
+      const workflowRunId = process.env.GITHUB_RUN_ID || 'unknown'
+      const timestamp = new Date().toISOString()
+
+      const buildInfo = {
+        version: CACHE_BUST_VERSION,
+        commit: commitHash,
+        branch,
+        buildNumber: workflowRunId,
+        timestamp,
+        basePath: isGitHubPages ? '/booknotes-pwa' : '/',
+        buildUrl: workflowRunId !== 'unknown'
+          ? `https://github.com/rwese/booknotes-pwa/actions/runs/${workflowRunId}`
+          : null
+      }
+
+      fs.writeFileSync(
+        path.resolve(outDir, 'build-info.json'),
+        JSON.stringify(buildInfo, null, 2)
+      )
     }
   }
 }
 
 // Plugin to transform static asset paths in index.html for GitHub Pages
 function basePathTransformer(): Plugin {
+  const basePath = '/booknotes-pwa/'
+
   return {
     name: 'base-path-transformer',
     transformIndexHtml(html) {
       if (!isGitHubPages) return html
 
-      // Transform relative paths to use base path
-      const basePath = '/booknotes-pwa/'
+      // Transform relative paths to use base path in index.html
       return html
-        .replace(/href="manifest\.webmanifest"/g, `href="${basePath}manifest.webmanifest"`)
         .replace(/href="icons\//g, `href="${basePath}icons/`)
+        .replace(/src="icons\//g, `src="${basePath}icons/`)
+    },
+    closeBundle() {
+      if (!isGitHubPages) return
+
+      // Transform manifest.webmanifest to use base path for icon src
+      const outDir = isGitHubPages ? path.resolve(__dirname, 'dist') : 'dist'
+
+      try {
+        const manifestPath = path.resolve(outDir, 'manifest.webmanifest')
+        if (fs.existsSync(manifestPath)) {
+          let manifest = fs.readFileSync(manifestPath, 'utf-8')
+          // Replace icon src paths to include base path
+          manifest = manifest.replace(/"src":"icons\//g, `"src":"${basePath}icons/`)
+          fs.writeFileSync(manifestPath, manifest)
+        }
+      } catch (e) {
+        // Ignore errors - may not be available in all build contexts
+      }
     }
   }
 }
@@ -51,7 +91,7 @@ export default defineConfig({
     }
   },
   plugins: [
-    versionJsonPlugin(),
+    buildInfoPlugin(),
     basePathTransformer(),
     // SPA fallback for vite preview: rewrite non-file URLs to index.html
     {
