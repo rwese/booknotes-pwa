@@ -330,6 +330,17 @@
   .filter-panel__option:active {
     background-color: var(--app-border, #475569);
   }
+
+  .filter-panel__option--active {
+    background-color: var(--app-primary, #60a5fa);
+    color: white;
+    font-weight: 500;
+  }
+
+  .filter-panel__option--active:hover,
+  .filter-panel__option--active:focus {
+    background-color: var(--app-primary-hover, #3b82f6);
+  }
 }
 
 /* Panel footer */
@@ -443,6 +454,19 @@
 
   .filter-panel__btn:active {
     background-color: var(--app-border, #475569);
+  }
+
+  .filter-panel__btn--active {
+    background-color: var(--app-primary, #60a5fa);
+    border-color: var(--app-primary, #60a5fa);
+    color: white;
+    font-weight: 500;
+  }
+
+  .filter-panel__btn--active:hover,
+  .filter-panel__btn--active:focus {
+    background-color: var(--app-primary-hover, #3b82f6);
+    border-color: var(--app-primary-hover, #3b82f6);
   }
 
   .filter-panel__select {
