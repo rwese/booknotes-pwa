@@ -21,6 +21,22 @@ function versionJsonPlugin(): Plugin {
   }
 }
 
+// Plugin to transform static asset paths in index.html for GitHub Pages
+function basePathTransformer(): Plugin {
+  return {
+    name: 'base-path-transformer',
+    transformIndexHtml(html) {
+      if (!isGitHubPages) return html
+
+      // Transform relative paths to use base path
+      const basePath = '/booknotes-pwa/'
+      return html
+        .replace(/href="manifest\.webmanifest"/g, `href="${basePath}manifest.webmanifest"`)
+        .replace(/href="icons\//g, `href="${basePath}icons/`)
+    }
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   base: isGitHubPages ? '/booknotes-pwa' : '/',
@@ -36,6 +52,7 @@ export default defineConfig({
   },
   plugins: [
     versionJsonPlugin(),
+    basePathTransformer(),
     // SPA fallback for vite preview: rewrite non-file URLs to index.html
     {
       name: 'spa-fallback-preview',
