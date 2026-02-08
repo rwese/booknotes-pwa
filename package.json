@@ -24,6 +24,7 @@
     "version:dry-major": "node scripts/version.js --major --dry-run"
   },
   "dependencies": {
+    "@sentry/react": "^10.38.0",
     "@tanstack/react-form": "^1.28.0",
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-table": "^8.21.3",

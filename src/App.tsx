@@ -4,6 +4,7 @@ import { useVersionCheck } from './hooks/useVersionCheck'
 import { BASE_PATH, navigateWithBasepath } from './utils/navigation'
 import { ModalProvider, ModalContext } from './context/ModalContext'
 import { useContext } from 'react'
+import * as Sentry from '@sentry/react'
 
 function TabBar() {
   const location = useLocation()
@@ -20,7 +21,15 @@ function TabBar() {
   }
 
   const handleNavigate = (path: string) => {
-    navigateWithBasepath(navigate, path)
+    Sentry.startSpan(
+      {
+        op: 'ui.click',
+        name: `Tab navigation to ${path}`
+      },
+      () => {
+        navigateWithBasepath(navigate, path)
+      }
+    )
   }
 
   return (

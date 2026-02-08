@@ -7,6 +7,7 @@ import {
   checkForUpdates,
   registerServiceWorker
 } from '../utils/cacheInvalidation'
+import * as Sentry from '@sentry/react'
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
@@ -238,6 +239,18 @@ export function SettingsPage() {
           BookNotes PWA v1.0<br />
           A progressive web app for managing your book collection.
         </p>
+
+        {/* Sentry Test Button */}
+        <button
+          type="button"
+          className="btn btn--secondary mt-4"
+          onClick={() => {
+            Sentry.captureException(new Error('Test exception from Settings'))
+            alert('Test exception sent to Sentry!')
+          }}
+        >
+          Test Sentry
+        </button>
       </div>
     </div>
   )

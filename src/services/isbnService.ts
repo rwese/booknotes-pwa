@@ -1,5 +1,6 @@
 import type { ISBNLookupResult } from '../types'
 import { API_CONFIG } from '../config/api'
+import * as Sentry from '@sentry/react'
 
 export class ISBNService {
   private static instance: ISBNService
@@ -75,114 +76,130 @@ export class ISBNService {
   }
 
   private async lookupGoogleBooks(isbn: string): Promise<ISBNLookupResult> {
-    const url = `${API_CONFIG.proxyBaseUrl}/isbn/${isbn}?source=google`
+    return Sentry.startSpan(
+      {
+        op: 'http.client',
+        name: `GET Google Books API /isbn/${isbn}`
+      },
+      async () => {
+        const url = `${API_CONFIG.proxyBaseUrl}/isbn/${isbn}?source=google`
 
-    const response = await fetch(url, {
-      headers: this.getProxyHeaders()
-    })
-    if (!response.ok) {
-      throw new Error('Network error')
-    }
+        const response = await fetch(url, {
+          headers: this.getProxyHeaders()
+        })
+        if (!response.ok) {
+          throw new Error('Network error')
+        }
 
-    const data = await response.json()
+        const data = await response.json()
 
-    if (!data.items || data.items.length === 0) {
-      throw new Error('Book not found')
-    }
+        if (!data.items || data.items.length === 0) {
+          throw new Error('Book not found')
+        }
 
-    const book = data.items[0].volumeInfo
+        const book = data.items[0].volumeInfo
 
-    // Download cover image
-    let coverImageData: Blob | undefined
-    let coverThumbnailData: Blob | undefined
+        // Download cover image
+        let coverImageData: Blob | undefined
+        let coverThumbnailData: Blob | undefined
 
-    if (book.imageLinks?.thumbnail) {
-      const imageUrl = book.imageLinks.thumbnail.replace('http://', 'https://')
-      try {
-        coverImageData = await this.downloadImage(imageUrl)
-        coverThumbnailData = await this.generateThumbnail(coverImageData)
-      } catch {
-        // Ignore image download errors
+        if (book.imageLinks?.thumbnail) {
+          const imageUrl = book.imageLinks.thumbnail.replace('http://', 'https://')
+          try {
+            coverImageData = await this.downloadImage(imageUrl)
+            coverThumbnailData = await this.generateThumbnail(coverImageData)
+          } catch {
+            // Ignore image download errors
+          }
+        }
+
+        return {
+          title: book.title || '',
+          authors: book.authors || [],
+          publisher: book.publisher,
+          publicationYear: this.extractYear(book.publishedDate),
+          genre: book.categories?.[0],
+          language: book.language,
+          pageCount: book.pageCount,
+          description: book.description,
+          isbn10: book.industryIdentifiers?.find((i: { type: string }) => i.type === 'ISBN_10')?.identifier,
+          isbn13: book.industryIdentifiers?.find((i: { type: string }) => i.type === 'ISBN_13')?.identifier,
+          coverImageUrl: book.imageLinks?.thumbnail,
+          coverImageData,
+          coverThumbnailData,
+          source: 'googleBooks'
+        }
       }
-    }
-
-    return {
-      title: book.title || '',
-      authors: book.authors || [],
-      publisher: book.publisher,
-      publicationYear: this.extractYear(book.publishedDate),
-      genre: book.categories?.[0],
-      language: book.language,
-      pageCount: book.pageCount,
-      description: book.description,
-      isbn10: book.industryIdentifiers?.find((i: { type: string }) => i.type === 'ISBN_10')?.identifier,
-      isbn13: book.industryIdentifiers?.find((i: { type: string }) => i.type === 'ISBN_13')?.identifier,
-      coverImageUrl: book.imageLinks?.thumbnail,
-      coverImageData,
-      coverThumbnailData,
-      source: 'googleBooks'
-    }
+    )
   }
 
   private async lookupOpenLibrary(isbn: string): Promise<ISBNLookupResult> {
-    const url = `${API_CONFIG.proxyBaseUrl}/isbn/${isbn}?source=openlibrary`
+    return Sentry.startSpan(
+      {
+        op: 'http.client',
+        name: `GET Open Library API /isbn/${isbn}`
+      },
+      async () => {
+        const url = `${API_CONFIG.proxyBaseUrl}/isbn/${isbn}?source=openlibrary`
 
-    const response = await fetch(url, {
-      headers: this.getProxyHeaders()
-    })
-    if (!response.ok) {
-      throw new Error('Book not found')
-    }
+        const response = await fetch(url, {
+          headers: this.getProxyHeaders()
+        })
+        if (!response.ok) {
+          throw new Error('Book not found')
+        }
 
-    const book = await response.json()
+        const book = await response.json()
 
-    // Fetch author names
-    const authors: string[] = []
-    if (book.authors) {
-      for (const authorRef of book.authors) {
-        try {
-          const authorUrl = `${API_CONFIG.proxyBaseUrl}/isbn/author?key=${encodeURIComponent(authorRef.key)}`
-          const authorResponse = await fetch(authorUrl, {
-            headers: this.getProxyHeaders()
-          })
-          if (authorResponse.ok) {
-            const authorData = await authorResponse.json()
-            if (authorData.name) {
-              authors.push(this.standardizeAuthorName(authorData.name))
+        // Fetch author names
+        const authors: string[] = []
+        if (book.authors) {
+          for (const authorRef of book.authors) {
+            try {
+              const authorUrl = `${API_CONFIG.proxyBaseUrl}/isbn/author?key=${encodeURIComponent(authorRef.key)}`
+              const authorResponse = await fetch(authorUrl, {
+                headers: this.getProxyHeaders()
+              })
+              if (authorResponse.ok) {
+                const authorData = await authorResponse.json()
+                if (authorData.name) {
+                  authors.push(this.standardizeAuthorName(authorData.name))
+                }
+              }
+            } catch {
+              // Ignore author fetch errors
             }
           }
+        }
+
+        // Download cover image
+        let coverImageData: Blob | undefined
+        let coverThumbnailData: Blob | undefined
+
+        const coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
+        try {
+          coverImageData = await this.downloadImage(coverUrl)
+          coverThumbnailData = await this.generateThumbnail(coverImageData)
         } catch {
-          // Ignore author fetch errors
+          // Ignore image download errors
+        }
+
+        return {
+          title: book.title || '',
+          authors,
+          publisher: book.publishers?.[0],
+          publicationYear: this.extractYear(book.publishDate),
+          language: book.languages?.[0]?.key?.replace('/languages/', ''),
+          pageCount: book.numberOfPages,
+          isbn10: book.isbn10?.[0],
+          isbn13: book.isbn13?.[0],
+          coverImageUrl: coverUrl,
+          coverImageData,
+          coverThumbnailData,
+          source: 'openLibrary'
         }
       }
-    }
-
-    // Download cover image
-    let coverImageData: Blob | undefined
-    let coverThumbnailData: Blob | undefined
-
-    const coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-L.jpg`
-    try {
-      coverImageData = await this.downloadImage(coverUrl)
-      coverThumbnailData = await this.generateThumbnail(coverImageData)
-    } catch {
-      // Ignore image download errors
-    }
-
-    return {
-      title: book.title || '',
-      authors,
-      publisher: book.publishers?.[0],
-      publicationYear: this.extractYear(book.publishDate),
-      language: book.languages?.[0]?.key?.replace('/languages/', ''),
-      pageCount: book.numberOfPages,
-      isbn10: book.isbn10?.[0],
-      isbn13: book.isbn13?.[0],
-      coverImageUrl: coverUrl,
-      coverImageData,
-      coverThumbnailData,
-      source: 'openLibrary'
-    }
+    )
   }
 
   private getProxyHeaders(): HeadersInit {
@@ -192,56 +209,72 @@ export class ISBNService {
   }
 
   private async downloadImage(url: string): Promise<Blob> {
-    const proxyUrl = `${API_CONFIG.proxyBaseUrl}/cover/?url=${encodeURIComponent(url)}`
-    const response = await fetch(proxyUrl, {
-      headers: this.getProxyHeaders()
-    })
-    if (!response.ok) {
-      throw new Error('Failed to download image')
-    }
-    return response.blob()
+    return Sentry.startSpan(
+      {
+        op: 'http.client',
+        name: `Download cover image from ${url}`
+      },
+      async () => {
+        const proxyUrl = `${API_CONFIG.proxyBaseUrl}/cover/?url=${encodeURIComponent(url)}`
+        const response = await fetch(proxyUrl, {
+          headers: this.getProxyHeaders()
+        })
+        if (!response.ok) {
+          throw new Error('Failed to download image')
+        }
+        return response.blob()
+      }
+    )
   }
 
   private async generateThumbnail(imageBlob: Blob): Promise<Blob> {
-    return new Promise((resolve, reject) => {
-      const img = new Image()
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
+    return Sentry.startSpan(
+      {
+        op: 'function',
+        name: 'Generate cover thumbnail'
+      },
+      async () => {
+        return new Promise<Blob>((resolve, reject) => {
+          const img = new Image()
+          img.onload = () => {
+            const canvas = document.createElement('canvas')
+            const ctx = canvas.getContext('2d')
 
-        // Target size: 200x300 (2:3 ratio)
-        const targetWidth = 200
-        const targetHeight = 300
+            // Target size: 200x300 (2:3 ratio)
+            const targetWidth = 200
+            const targetHeight = 300
 
-        canvas.width = targetWidth
-        canvas.height = targetHeight
+            canvas.width = targetWidth
+            canvas.height = targetHeight
 
-        if (ctx) {
-          // Fit image within target while maintaining aspect ratio
-          const scale = Math.min(targetWidth / img.width, targetHeight / img.height)
-          const x = (targetWidth - img.width * scale) / 2
-          const y = (targetHeight - img.height * scale) / 2
+            if (ctx) {
+              // Fit image within target while maintaining aspect ratio
+              const scale = Math.min(targetWidth / img.width, targetHeight / img.height)
+              const x = (targetWidth - img.width * scale) / 2
+              const y = (targetHeight - img.height * scale) / 2
 
-          ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
+              ctx.drawImage(img, x, y, img.width * scale, img.height * scale)
 
-          canvas.toBlob(
-            (blob) => {
-              if (blob) {
-                resolve(blob)
-              } else {
-                reject(new Error('Failed to create thumbnail'))
-              }
-            },
-            'image/jpeg',
-            0.8
-          )
-        } else {
-          reject(new Error('Could not get canvas context'))
-        }
+              canvas.toBlob(
+                (blob) => {
+                  if (blob) {
+                    resolve(blob)
+                  } else {
+                    reject(new Error('Failed to create thumbnail'))
+                  }
+                },
+                'image/jpeg',
+                0.8
+              )
+            } else {
+              reject(new Error('Could not get canvas context'))
+            }
+          }
+          img.onerror = () => reject(new Error('Failed to load image'))
+          img.src = URL.createObjectURL(imageBlob)
+        })
       }
-      img.onerror = () => reject(new Error('Failed to load image'))
-      img.src = URL.createObjectURL(imageBlob)
-    })
+    )
   }
 
   private extractYear(dateString?: string): number | undefined {
